@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutor Directory</title>
+<style>
+/* Tutor Portfolio — base styles + theme tokens
+   One base palette (paper/ink/hairline), theme only swaps the accent pair. */
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+
+:root {
+  --paper: #F2EDE3;
+  --ink: #211D17;
+  --ink-soft: #55524A;
+  --line: rgba(27, 22, 15, 0.14);
+  --line-strong: rgba(27, 22, 15, 0.24);
+
+  --accent: #0E6B4F;
+  --accent-tint: #E4F0EA;
+  --accent-ink: #0E6B4F;
+
+  --radius: 3px;
+  --content-width: 760px;
+  --grid-width: 1120px;
+}
+
+[data-theme="emerald"]  { --accent: #0E6B4F; --accent-tint: #E4F0EA; }
+[data-theme="deepblue"] { --accent: #1E3A5F; --accent-tint: #E4EAF1; }
+[data-theme="teal"]     { --accent: #0B6E77; --accent-tint: #DFF0F1; }
+[data-theme="burgundy"] { --accent: #7A2333; --accent-tint: #F4E4E7; }
+[data-theme="sand"]     { --accent: #A9772F; --accent-tint: #F5ECDD; }
+[data-theme="purple"]   { --accent: #5B3170; --accent-tint: #EFE4F2; }
+[data-theme="dark"] {
+  --paper: #14120F;
+  --ink: #EDEAE2;
+  --ink-soft: #B3AEA2;
+  --line: rgba(237, 234, 226, 0.16);
+  --line-strong: rgba(237, 234, 226, 0.28);
+  --accent: #C79A4B;
+  --accent-tint: #2A2317;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); }
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+h1, h2, h3 {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 0 0 0.5em;
+}
+
+p { margin: 0 0 1em; max-width: 68ch; }
+
+.container {
+  max-width: var(--grid-width);
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  border-bottom: 1px solid var(--line);
+  padding: 20px 0;
+}
+.topbar .container {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+.brand {
+  font-family: 'Fraunces', Georgia, serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+  color: var(--ink);
+  text-decoration: none;
+}
+.brand:hover { color: var(--accent); }
+
+/* ---------- Directory ---------- */
+.directory-header {
+  padding: 56px 0 28px;
+}
+.directory-header h1 {
+  font-size: clamp(1.8rem, 3.2vw, 2.6rem);
+  max-width: 20ch;
+}
+.directory-header p {
+  color: var(--ink-soft);
+  font-size: 1.05rem;
+}
+
+.search-row {
+  margin: 24px 0 40px;
+}
+.search-input {
+  width: 100%;
+  max-width: 420px;
+  padding: 12px 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius);
+}
+.search-input::placeholder { color: var(--ink-soft); }
+.search-input:focus { border-color: var(--accent); }
+
+.search-count {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.tutor-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-bottom: 64px;
+}
+@media (max-width: 880px) {
+  .tutor-grid { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .tutor-grid { grid-template-columns: 1fr; }
+}
+
+.tutor-card {
+  background: var(--paper);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+.tutor-card:hover { background: var(--accent-tint); }
+
+.tutor-card .card-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tutor-card img.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line-strong);
+  flex-shrink: 0;
+}
+.tutor-card .avatar-fallback {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Fraunces', serif;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  border: 1px solid var(--line-strong);
+}
+.tutor-card h3 {
+  font-size: 1.15rem;
+  margin: 0;
+}
+.tutor-card .title {
+  font-size: 0.88rem;
+  color: var(--ink-soft);
+  margin: 2px 0 0;
+}
+.tutor-card .summary {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: auto;
+}
+.tag {
+  font-size: 0.78rem;
+  padding: 3px 9px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  color: var(--ink-soft);
+}
+.tutor-card.featured { background: var(--accent-tint); }
+.featured-mark {
+  font-size: 0.75rem;
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.empty-state {
+  padding: 60px 0;
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+/* ---------- Profile page ---------- */
+.profile-wrap {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+
+.profile-header {
+  text-align: center;
+  padding-bottom: 40px;
+  margin-bottom: 40px;
+  border-bottom: 1px solid var(--line);
+}
+
+.photo-frame {
+  width: 148px;
+  height: 148px;
+  margin: 0 auto 20px;
+  position: relative;
+  padding: 10px;
+}
+.photo-frame svg.corner-ornament {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--accent);
+}
+.photo-frame img,
+.photo-frame .avatar-fallback {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  position: relative;
+}
+.photo-frame .avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-family: 'Fraunces', serif;
+  font-size: 2.6rem;
+}
+
+.profile-header h1 {
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+}
+.profile-header .title {
+  color: var(--accent-ink);
+  font-size: 1.05rem;
+  margin-bottom: 18px;
+}
+.profile-header .summary {
+  color: var(--ink-soft);
+  margin: 0 auto 24px;
+  text-align: left;
+}
+
+.contact-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+.contact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 0.92rem;
+}
+.contact-chip svg { flex-shrink: 0; color: var(--ink-soft); }
+.contact-chip:hover { border-color: var(--accent); color: var(--accent-ink); }
+.contact-chip:hover svg { color: var(--accent-ink); }
+
+section.profile-section {
+  padding: 32px 0;
+  border-bottom: 1px solid var(--line);
+}
+section.profile-section:last-of-type { border-bottom: none; }
+section.profile-section h2 {
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+}
+
+.pill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.teaching-group { margin-bottom: 18px; }
+.teaching-group:last-child { margin-bottom: 0; }
+.group-label {
+  font-family: 'IBM Plex Sans', sans-serif;
+  font-weight: 600;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: 0 0 8px;
+}
+.pill {
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+}
+
+.lang-list { list-style: none; padding: 0; margin: 0; }
+.lang-list li {
+  display: flex;
+  justify-content: space-between;
+  max-width: 320px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.95rem;
+}
+.lang-list li:last-child { border-bottom: none; }
+.lang-list .level { color: var(--ink-soft); }
+
+.video-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 28px;
+}
+.video-item .frame {
+  position: relative;
+  padding-top: 56.25%;
+  background: #000;
+  border: 1px solid var(--line);
+}
+.video-item .frame iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+.video-item h3 {
+  font-size: 1.05rem;
+  margin: 12px 0 4px;
+}
+.video-item p {
+  font-size: 0.92rem;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+/* ---------- Certificates: two candidate display modes ---------- */
+.cert-mode-toggle {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  font-size: 0.85rem;
+}
+.cert-mode-toggle button {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 6px 14px;
+  border: none;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.cert-mode-toggle button.active {
+  background: var(--accent);
+  color: var(--paper);
+}
+.cert-mode-note {
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+  margin: -8px 0 20px;
+}
+
+.cert-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+.cert-card {
+  border: 1px solid var(--line);
+  padding: 16px;
+  background: transparent;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.cert-card:hover { border-color: var(--accent); }
+.cert-card h3 {
+  font-size: 0.98rem;
+  margin: 0 0 4px;
+}
+.cert-card .org {
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  margin: 0 0 2px;
+}
+.cert-card .date {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+.cert-card .view-hint {
+  margin-top: 10px;
+  font-size: 0.82rem;
+  color: var(--accent-ink);
+}
+
+/* Inline-expand mode */
+.cert-inline-panel {
+  display: none;
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-top: none;
+  margin-top: -17px;
+  padding: 16px;
+}
+.cert-inline-panel.open { display: block; }
+.cert-inline-panel iframe, .cert-inline-panel img {
+  width: 100%;
+  max-height: 520px;
+  border: 1px solid var(--line);
+}
+
+/* Modal/lightbox mode */
+.cert-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 18, 14, 0.6);
+  z-index: 50;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.cert-modal-backdrop.open { display: flex; }
+.cert-modal {
+  background: var(--paper);
+  max-width: 720px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--line-strong);
+}
+.cert-modal-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.cert-modal-head h3 { font-size: 1rem; margin: 0; }
+.cert-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-soft);
+}
+.cert-modal-body { padding: 0; flex: 1; overflow: auto; }
+.cert-modal-body iframe, .cert-modal-body img {
+  width: 100%;
+  height: 60vh;
+  border: 0;
+  display: block;
+}
+
+.philosophy-quote {
+  font-family: 'Fraunces', serif;
+  font-size: 1.15rem;
+  font-style: italic;
+  color: var(--ink);
+  border-left: 2px solid var(--accent);
+  padding-left: 18px;
+  margin: 0;
+}
+
+.site-footer {
+  border-top: 1px solid var(--line);
+  padding: 32px 0;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+</style>
+</head>
+<body data-theme="emerald">
+  <header class="topbar">
+    <div class="container">
+      <a class="brand" href="./">Tutor Directory</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="directory-header">
+      <h1>Find an English &amp; Islamic Studies tutor</h1>
+      <p>Browse tutor profiles with teaching videos, certificates, and contact details.</p>
+    </div>
+
+    <div class="search-row">
+      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search tutors by name or title">
+      <div class="search-count" data-search-count>1 tutor</div>
+    </div>
+
+    <div class="tutor-grid">
+      
+  <a href="#" class="tutor-card featured" data-theme="emerald"
+     data-tutor-card data-name="Ahmed Mohamed" data-title="English &amp; Islamic English Tutor">
+    <div class="card-top">
+      <img class="avatar" src="https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&amp;sz=w1000" alt="Ahmed Mohamed" loading="lazy">
+      <div>
+        <h3>Ahmed Mohamed</h3>
+        <p class="title">English &amp; Islamic English Tutor</p>
+      </div>
+    </div>
+    <span class="featured-mark">Featured tutor</span>
+    <p class="summary">I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.</p>
+    <div class="tag-row"><span class="tag">General English</span><span class="tag">Conversational English</span><span class="tag">Children</span><span class="tag">Teenagers</span></div>
+  </a>
+    </div>
+    <div class="empty-state" data-empty-state style="display:none;">
+      No tutors match that search.
+    </div>
+  </div>
+
+  <footer class="site-footer">Generated 2026-09-12T10:13:12.970Z</footer>
+  <script>
+// ---------- Directory search (name/title only, per v1 scope) ----------
+(function initSearch() {
+  const input = document.querySelector('[data-search-input]');
+  if (!input) return;
+  const cards = Array.from(document.querySelectorAll('[data-tutor-card]'));
+  const countEl = document.querySelector('[data-search-count]');
+  const emptyEl = document.querySelector('[data-empty-state]');
+
+  function apply() {
+    const q = input.value.trim().toLowerCase();
+    let visible = 0;
+    cards.forEach((card) => {
+      const haystack = (card.dataset.name + ' ' + card.dataset.title).toLowerCase();
+      const match = !q || haystack.includes(q);
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    if (countEl) countEl.textContent = `${visible} tutor${visible === 1 ? '' : 's'}`;
+    if (emptyEl) emptyEl.style.display = visible === 0 ? '' : 'none';
+  }
+
+  input.addEventListener('input', apply);
+  apply();
+})();
+
+// ---------- Certificate display: DEMO toggle between two candidate modes ----------
+// This toggle exists only to help decide the final approach; once a mode is
+// chosen, the losing mode's markup/CSS/JS should be deleted from the build.
+(function initCertificates() {
+  const toggle = document.querySelector('[data-cert-mode-toggle]');
+  const root = document.querySelector('[data-cert-section]');
+  if (!root) return;
+
+  function setMode(mode) {
+    root.dataset.mode = mode;
+    if (toggle) {
+      toggle.querySelectorAll('button').forEach((b) => {
+        b.classList.toggle('active', b.dataset.mode === mode);
+      });
+    }
+    // closing anything open when switching modes
+    root.querySelectorAll('.cert-inline-panel.open').forEach((p) => p.classList.remove('open'));
+    closeModal();
+  }
+
+  if (toggle) {
+    toggle.querySelectorAll('button').forEach((btn) => {
+      btn.addEventListener('click', () => setMode(btn.dataset.mode));
+    });
+  }
+
+  // Inline mode: clicking a card opens/closes the panel right after it
+  root.querySelectorAll('[data-cert-card]').forEach((card) => {
+    card.addEventListener('click', () => {
+      const mode = root.dataset.mode;
+      const panel = document.getElementById(card.dataset.panelId);
+      if (mode === 'inline') {
+        const wasOpen = panel.classList.contains('open');
+        root.querySelectorAll('.cert-inline-panel.open').forEach((p) => p.classList.remove('open'));
+        if (!wasOpen) panel.classList.add('open');
+      } else if (mode === 'modal') {
+        openModal(card.dataset.name, card.dataset.embedUrl, card.dataset.embedKind);
+      }
+    });
+  });
+
+  const backdrop = document.querySelector('[data-cert-modal-backdrop]');
+  const modalTitle = document.querySelector('[data-cert-modal-title]');
+  const modalBody = document.querySelector('[data-cert-modal-body]');
+  const closeBtn = document.querySelector('[data-cert-modal-close]');
+
+  function openModal(name, embedUrl, kind) {
+    if (!backdrop) return;
+    modalTitle.textContent = name;
+    modalBody.innerHTML = kind === 'image'
+      ? `<img src="${embedUrl}" alt="${name}">`
+      : `<iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe>`;
+    backdrop.classList.add('open');
+  }
+  function closeModal() {
+    if (!backdrop) return;
+    backdrop.classList.remove('open');
+    if (modalBody) modalBody.innerHTML = '';
+  }
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "generatedAt": "2026-09-12T10:13:12.970Z",
+  "tutors": [
+    {
+      "profileKey": "ahmed-mohamed",
+      "featured": true,
+      "name": "Ahmed Mohamed",
+      "title": "English & Islamic English Tutor",
+      "photo": {
+        "provider": "drive",
+        "id": "1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih",
+        "embedUrl": "https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&sz=w1000"
+      },
+      "summary": "I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.",
+      "theme": "emerald",
+      "specializations": [
+        "General English",
+        "Conversational English",
+        "English for Adults",
+        "Business English",
+        "Islamic Studies in English",
+        "Quran-related English",
+        "English for Non-Native Speakers"
+      ],
+      "ageGroups": [
+        "Children",
+        "Teenagers",
+        "Adults"
+      ],
+      "levels": [
+        "Beginner",
+        "Elementary",
+        "Intermediate",
+        "Upper Intermediate"
+      ],
+      "format": [
+        "Online"
+      ]
+    }
+  ]
+}

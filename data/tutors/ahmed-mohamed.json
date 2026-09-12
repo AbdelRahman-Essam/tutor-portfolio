@@ -1,0 +1,132 @@
+{
+  "id": "faa3269284cc",
+  "profileKey": "ahmed-mohamed",
+  "status": "Approved",
+  "visibility": "public",
+  "featured": true,
+  "personal": {
+    "name": "Ahmed Mohamed",
+    "title": "English & Islamic English Tutor",
+    "photo": {
+      "provider": "drive",
+      "id": "1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih",
+      "embedUrl": "https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&sz=w1000"
+    },
+    "summary": "I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.",
+    "theme": "emerald"
+  },
+  "teaching": {
+    "specializations": [
+      "General English",
+      "Conversational English",
+      "English for Adults",
+      "Business English",
+      "Islamic Studies in English",
+      "Quran-related English",
+      "English for Non-Native Speakers"
+    ],
+    "ageGroups": [
+      "Children",
+      "Teenagers",
+      "Adults"
+    ],
+    "levels": [
+      "Beginner",
+      "Elementary",
+      "Intermediate",
+      "Upper Intermediate"
+    ],
+    "format": [
+      "Online"
+    ],
+    "availability": "Accepting new students",
+    "experienceYears": "5",
+    "experienceDescription": "I have five years of experience teaching English to children, teenagers, and adults through private lessons and online classes. I have helped students improve their speaking, vocabulary, grammar, and everyday communication skills.",
+    "philosophy": "I believe students learn best when lessons are simple, practical, and engaging. I encourage students to speak, ask questions, and practice English in meaningful situations."
+  },
+  "languages": [
+    {
+      "language": "English",
+      "proficiency": "Fluent"
+    },
+    {
+      "language": "Arabic",
+      "proficiency": "Native"
+    }
+  ],
+  "technicalSkills": [
+    "Zoom",
+    "Google Meet",
+    "Microsoft Teams",
+    "Google Classroom",
+    "PowerPoint",
+    "Video Editing"
+  ],
+  "videos": [
+    {
+      "title": "About Me",
+      "description": "A short introduction about my teaching experience, interests, and approach to teaching English.",
+      "provider": "youtube",
+      "id": "3QYC2oXTdUA",
+      "embedUrl": "https://www.youtube.com/embed/3QYC2oXTdUA"
+    },
+    {
+      "title": "My Teaching Style",
+      "description": "A short video explaining how I make English lessons interactive and practical for students.",
+      "provider": "youtube",
+      "id": "S7uKF02bD-4",
+      "embedUrl": "https://www.youtube.com/embed/S7uKF02bD-4"
+    },
+    {
+      "title": "Sample English Lesson",
+      "description": "A short demonstration of an English lesson for intermediate-level students.",
+      "provider": "drive",
+      "id": "1RtwkxAw7yNnkrmhErnw0kheX_6MlvLA7",
+      "embedUrl": "https://drive.google.com/file/d/1RtwkxAw7yNnkrmhErnw0kheX_6MlvLA7/preview"
+    }
+  ],
+  "contacts": {
+    "email": "ahmed.tutor@example.com",
+    "whatsapp": "+201012345678",
+    "phone": "+201012345678",
+    "telegram": "@ahmedtutor",
+    "facebook": "https://facebook.com/ahmed.tutor",
+    "instagram": "https://instagram.com/ahmed.tutor",
+    "linkedin": "https://linkedin.com/in/ahmed-tutor"
+  },
+  "certificates": [
+    {
+      "name": "TESOL Certificate",
+      "organization": "International TESOL Institute",
+      "date": "6/11/2024",
+      "description": "Professional qualification in teaching English to speakers of other languages.",
+      "file": {
+        "provider": "drive",
+        "id": "1bMWw7VYXqFH-m8dBF08dC2Wi0nbOtvDK",
+        "embedUrl": "https://drive.google.com/file/d/1bMWw7VYXqFH-m8dBF08dC2Wi0nbOtvDK/preview"
+      }
+    },
+    {
+      "name": "English Language Teaching Certificate",
+      "organization": "ABC Training Academy",
+      "date": "6/12/2023",
+      "description": "Certificate in English language teaching methods and classroom practice.",
+      "file": {
+        "provider": "drive",
+        "id": "1WYPoAOG4ag3ldcyFMkJYt0KYNDHBSqkT",
+        "embedUrl": "https://drive.google.com/file/d/1WYPoAOG4ag3ldcyFMkJYt0KYNDHBSqkT/preview"
+      }
+    },
+    {
+      "name": "Functional Safety",
+      "organization": "safeTTy",
+      "date": "9/9/2026",
+      "description": "FuSa Cert in Embedded Systems",
+      "file": {
+        "provider": "drive",
+        "id": "1N3SR9O9I9BTJxxG8BwOKMCnLsRrsoaot",
+        "embedUrl": "https://drive.google.com/file/d/1N3SR9O9I9BTJxxG8BwOKMCnLsRrsoaot/preview"
+      }
+    }
+  ]
+}
