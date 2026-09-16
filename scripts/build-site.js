@@ -3,10 +3,10 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const DATA_TUTORS_DIR = path.join(ROOT, 'data', 'tutors');
+const DATA_PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
 const DATA_INDEX = path.join(ROOT, 'data', 'index.json');
 const SITE_DIR = path.join(ROOT, 'site');
-const TUTORS_OUT_DIR = path.join(SITE_DIR, 'tutors');
+const PROFILES_OUT_DIR = path.join(SITE_DIR, 'p');
 
 function esc(str) {
   if (str == null) return '';
@@ -50,19 +50,17 @@ const CORNER_ORNAMENT_SVG = `
 
 function tutorCard(t) {
   const theme = esc(t.theme || 'emerald');
-  const tags = [
-    ...(t.specializations || []).slice(0, 2),
-    ...(t.ageGroups || []),
-  ].slice(0, 4);
+  const tags = (t.tags || []).slice(0, 4);
 
   return `
-  <a href="tutors/${esc(t.profileKey)}/" class="tutor-card${t.featured ? ' featured' : ''}" data-theme="${theme}"
-     data-tutor-card data-name="${esc(t.name)}" data-title="${esc(t.title || '')}">
+  <a href="p/${esc(t.profileKey)}/" class="tutor-card${t.featured ? ' featured' : ''}" data-theme="${theme}"
+     data-tutor-card data-name="${esc(t.name)}" data-title="${esc(t.title || '')} ${esc(tags.join(' '))} ${esc(t.location || '')}">
     <div class="card-top">
       ${avatarHtml(t.photo, t.name, 'avatar')}
       <div>
         <h3>${esc(t.name)}</h3>
         ${t.title ? `<p class="title">${esc(t.title)}</p>` : ''}
+        ${t.location ? `<p class="title">${esc(t.location)}</p>` : ''}
       </div>
     </div>
     ${t.featured ? '<span class="featured-mark">Featured tutor</span>' : ''}
@@ -72,38 +70,38 @@ function tutorCard(t) {
 }
 
 function renderDirectory(directory) {
-  const sorted = [...directory.tutors].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  const sorted = [...directory.profiles].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tutor Directory</title>
+<title>Profile Directory</title>
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body data-theme="emerald">
   <header class="topbar">
     <div class="container">
-      <a class="brand" href="./">Tutor Directory</a>
+      <a class="brand" href="./">Profile Directory</a>
     </div>
   </header>
 
   <div class="container">
     <div class="directory-header">
-      <h1>Find an English &amp; Islamic Studies tutor</h1>
-      <p>Browse tutor profiles with teaching videos, certificates, and contact details.</p>
+      <h1>Find a tutor or professional</h1>
+      <p>Browse profiles with videos, certificates, experience and contact details.</p>
     </div>
 
     <div class="search-row">
       <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search tutors by name or title">
-      <div class="search-count" data-search-count>${sorted.length} tutor${sorted.length === 1 ? '' : 's'}</div>
+      <div class="search-count" data-search-count>${sorted.length} profile${sorted.length === 1 ? '' : 's'}</div>
     </div>
 
     <div class="tutor-grid">
       ${sorted.map(tutorCard).join('\n')}
     </div>
     <div class="empty-state" data-empty-state style="display:none;">
-      No tutors match that search.
+      No profiles match that search.
     </div>
   </div>
 
@@ -125,6 +123,7 @@ const CONTACT_ICONS = {
   facebook: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12.5 6.5h-2c-.8 0-1 .4-1 1v2h3l-.4 3h-2.6v6h-3v-6H4.5v-3h1.9V7c0-2 1-3.5 3.4-3.5h2.7z"/></svg>`,
   instagram: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="4"/><circle cx="10" cy="10" r="3.2"/><circle cx="14.2" cy="5.8" r="0.6" fill="currentColor" stroke="none"/></svg>`,
   linkedin: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 8.5v5.5M7 6.3v.1M10.3 14v-3.2c0-1.2.7-1.8 1.7-1.8 1 0 1.5.6 1.5 1.8V14"/></svg>`,
+  github: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7.5 16.5c-3 1-3.5-1.5-4.5-2m9 4v-2.8c0-.8-.1-1.1-.5-1.5 2-.2 4-1 4-4.4 0-.9-.3-1.7-.9-2.3.3-.8.2-1.7-.1-2.4 0 0-.7-.2-2.4.9a8 8 0 0 0-4.2 0C6.2 4 5.5 4.2 5.5 4.2c-.3.7-.4 1.6-.1 2.4-.6.6-.9 1.4-.9 2.3 0 3.4 2 4.2 4 4.4-.3.3-.4.7-.5 1.2V18"/></svg>`,
   website: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c1.8 2 1.8 12 0 14M10 3c-1.8 2-1.8 12 0 14"/></svg>`,
 };
 
@@ -138,6 +137,7 @@ function contactChips(contacts) {
     ['facebook', (v) => v, 'Facebook'],
     ['instagram', (v) => v, 'Instagram'],
     ['linkedin', (v) => v, 'LinkedIn'],
+    ['github', (v) => v, 'GitHub'],
     ['website', (v) => v, 'Website'],
   ];
   const chips = map
@@ -225,30 +225,23 @@ function videosSection(videos) {
 
 function certificatesSection(certificates) {
   if (!certificates || !certificates.length) return '';
-  const cards = certificates.map((c, i) => {
-    const panelId = `cert-panel-${i}`;
+  const cards = certificates.map((c) => {
     const hasFile = !!(c.file && c.file.embedUrl);
-    const kind = c.file && c.file.provider === 'drive' ? 'iframe' : 'image';
+    const kind = c.file && c.file.provider === 'drive' ? 'file' : 'image';
     return `
-      <button type="button" class="cert-card" ${hasFile ? `data-cert-card data-panel-id="${panelId}" data-name="${esc(c.name)}" data-embed-url="${esc(c.file.embedUrl)}" data-embed-kind="${kind === 'iframe' ? 'file' : 'image'}"` : 'disabled'}>
+      <button type="button" class="cert-card" ${hasFile ? `data-cert-card data-name="${esc(c.name)}" data-embed-url="${esc(c.file.embedUrl)}" data-embed-kind="${kind}"` : 'disabled'}>
         <h3>${esc(c.name)}</h3>
         ${c.organization ? `<p class="org">${esc(c.organization)}</p>` : ''}
         ${c.date ? `<p class="date">${esc(c.date)}</p>` : ''}
         ${hasFile ? '<p class="view-hint">View certificate</p>' : ''}
       </button>
-      ${hasFile ? `<div class="cert-inline-panel" id="${panelId}"><iframe src="${esc(c.file.embedUrl)}" title="${esc(c.name)}" loading="lazy"></iframe></div>` : ''}
     `;
   }).join('');
 
   return `
   <section class="profile-section">
     <h2>Certificates</h2>
-    <div class="cert-mode-toggle" data-cert-mode-toggle>
-      <button type="button" data-mode="inline" class="active">Inline preview</button>
-      <button type="button" data-mode="modal">Lightbox</button>
-    </div>
-    <p class="cert-mode-note">Demo toggle for deciding the display style — pick one and this note/toggle goes away.</p>
-    <div class="cert-grid" data-cert-section data-mode="inline">
+    <div class="cert-grid" data-cert-section>
       ${cards}
     </div>
   </section>
@@ -274,6 +267,85 @@ function contactSection(contacts) {
   </section>`;
 }
 
+
+// ---------------------------------------------------------------------------
+// Professional-kind sections
+// ---------------------------------------------------------------------------
+
+function metaLine(t) {
+  const bits = [t.personal.specialization, t.personal.location].filter(Boolean);
+  if (!bits.length) return '';
+  return `<p class="meta-line">${bits.map((b) => `<span>${esc(b)}</span>`).join('')}</p>`;
+}
+
+function pillSection(heading, items) {
+  if (!items || !items.length) return '';
+  return `
+  <section class="profile-section">
+    <h2>${esc(heading)}</h2>
+    <div class="pill-list">${items.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div>
+  </section>`;
+}
+
+function professionalOverviewSection(p) {
+  const pro = p.professional || {};
+  if (!pro.experienceYears && !pro.experienceSummary) return '';
+  return `
+  <section class="profile-section">
+    <h2>Professional Overview</h2>
+    ${pro.experienceYears ? `<p><strong>${esc(pro.experienceYears)} years</strong> of professional experience.</p>` : ''}
+    ${pro.experienceSummary ? `<p>${esc(pro.experienceSummary)}</p>` : ''}
+  </section>`;
+}
+
+function workExperienceSection(pro) {
+  const items = (pro && pro.workExperience) || [];
+  if (!items.length) return '';
+  return `
+  <section class="profile-section">
+    <h2>Work Experience</h2>
+    ${items.map((w) => `
+    <div class="entry">
+      ${w.position ? `<h3>${esc(w.position)}</h3>` : ''}
+      ${(w.organization || w.period) ? `<p class="entry-meta">${w.organization ? `<span class="entry-org">${esc(w.organization)}</span>` : ''}${w.organization && w.period ? ' · ' : ''}${w.period ? esc(w.period) : ''}</p>` : ''}
+      ${w.description ? `<p class="entry-desc">${esc(w.description)}</p>` : ''}
+    </div>`).join('')}
+  </section>`;
+}
+
+function projectsSection(pro) {
+  const items = (pro && pro.projects) || [];
+  if (!items.length) return '';
+  return `
+  <section class="profile-section">
+    <h2>Projects &amp; Portfolio</h2>
+    <div class="project-grid">
+      ${items.map((x) => `
+      <div class="project-card">
+        ${x.name ? `<h3>${esc(x.name)}</h3>` : ''}
+        ${x.description ? `<p>${esc(x.description)}</p>` : ''}
+      </div>`).join('')}
+    </div>
+  </section>`;
+}
+
+function educationSection(edu) {
+  if (!edu) return '';
+  const hasMain = edu.qualification || edu.institution || edu.graduationYear;
+  const extra = edu.additional || [];
+  if (!hasMain && !extra.length) return '';
+  return `
+  <section class="profile-section">
+    <h2>Education &amp; Qualifications</h2>
+    ${hasMain ? `
+    <div class="edu-block">
+      ${edu.qualification ? `<h3>${esc(edu.qualification)}</h3>` : ''}
+      ${(edu.institution || edu.graduationYear) ? `<p class="entry-meta">${edu.institution ? `<span class="entry-org">${esc(edu.institution)}</span>` : ''}${edu.institution && edu.graduationYear ? ' · ' : ''}${edu.graduationYear ? esc(edu.graduationYear) : ''}</p>` : ''}
+    </div>` : ''}
+    ${extra.length ? `<ul class="plain-list">${extra.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+  </section>`;
+}
+
 function renderProfile(t) {
   const theme = esc(t.personal.theme || 'emerald');
   return `<!DOCTYPE html>
@@ -287,7 +359,7 @@ function renderProfile(t) {
 <body data-theme="${theme}">
   <header class="topbar">
     <div class="container">
-      <a class="brand" href="../../">Tutor Directory</a>
+      <a class="brand" href="../../">Profile Directory</a>
     </div>
   </header>
 
@@ -299,16 +371,29 @@ function renderProfile(t) {
       </div>
       <h1>${esc(t.personal.name)}</h1>
       ${t.personal.title ? `<p class="title">${esc(t.personal.title)}</p>` : ''}
+      ${metaLine(t)}
       ${t.personal.summary ? `<p class="summary">${esc(t.personal.summary)}</p>` : ''}
     </div>
 
-    ${teachingProfileSection(t.teaching)}
-    ${videosSection(t.videos)}
-    ${experienceSection(t.teaching)}
-    ${languagesSection(t.languages)}
-    ${skillsSection(t.technicalSkills)}
-    ${philosophySection(t.teaching)}
-    ${certificatesSection(t.certificates)}
+    ${t.kind === 'professional' ? `
+      ${professionalOverviewSection(t)}
+      ${pillSection('Areas of Expertise', t.professional && t.professional.expertise)}
+      ${videosSection(t.videos)}
+      ${workExperienceSection(t.professional)}
+      ${projectsSection(t.professional)}
+      ${educationSection(t.education)}
+      ${pillSection('Software & Tools', t.professional && t.professional.tools)}
+      ${languagesSection(t.languages)}
+      ${certificatesSection(t.certificates)}
+    ` : `
+      ${teachingProfileSection(t.teaching)}
+      ${videosSection(t.videos)}
+      ${experienceSection(t.teaching)}
+      ${languagesSection(t.languages)}
+      ${pillSection('Technical Skills', t.skills)}
+      ${philosophySection(t.teaching)}
+      ${certificatesSection(t.certificates)}
+    `}
     ${contactSection(t.contacts)}
   </div>
 
@@ -328,22 +413,22 @@ function main() {
     process.exit(1);
   }
 
-  fs.mkdirSync(TUTORS_OUT_DIR, { recursive: true });
+  fs.mkdirSync(PROFILES_OUT_DIR, { recursive: true });
 
   const directory = JSON.parse(fs.readFileSync(DATA_INDEX, 'utf8'));
   fs.writeFileSync(path.join(SITE_DIR, 'index.html'), renderDirectory(directory));
 
-  const files = fs.readdirSync(DATA_TUTORS_DIR).filter((f) => f.endsWith('.json'));
+  const files = fs.readdirSync(DATA_PROFILES_DIR).filter((f) => f.endsWith('.json'));
   let count = 0;
   for (const file of files) {
-    const tutor = JSON.parse(fs.readFileSync(path.join(DATA_TUTORS_DIR, file), 'utf8'));
-    const outDir = path.join(TUTORS_OUT_DIR, tutor.profileKey);
+    const tutor = JSON.parse(fs.readFileSync(path.join(DATA_PROFILES_DIR, file), 'utf8'));
+    const outDir = path.join(PROFILES_OUT_DIR, tutor.profileKey);
     fs.mkdirSync(outDir, { recursive: true });
     fs.writeFileSync(path.join(outDir, 'index.html'), renderProfile(tutor));
     count++;
   }
 
-  console.log(`Built directory page + ${count} tutor profile page(s) into ${SITE_DIR}`);
+  console.log(`Built directory page + ${count} profile page(s) into ${SITE_DIR}`);
 }
 
 main();

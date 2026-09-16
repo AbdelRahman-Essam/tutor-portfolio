@@ -15,7 +15,7 @@
       card.style.display = match ? '' : 'none';
       if (match) visible++;
     });
-    if (countEl) countEl.textContent = `${visible} tutor${visible === 1 ? '' : 's'}`;
+    if (countEl) countEl.textContent = `${visible} profile${visible === 1 ? '' : 's'}`;
     if (emptyEl) emptyEl.style.display = visible === 0 ? '' : 'none';
   }
 
@@ -23,44 +23,14 @@
   apply();
 })();
 
-// ---------- Certificate display: DEMO toggle between two candidate modes ----------
-// This toggle exists only to help decide the final approach; once a mode is
-// chosen, the losing mode's markup/CSS/JS should be deleted from the build.
+// ---------- Certificate display: lightbox/modal ----------
 (function initCertificates() {
-  const toggle = document.querySelector('[data-cert-mode-toggle]');
   const root = document.querySelector('[data-cert-section]');
   if (!root) return;
 
-  function setMode(mode) {
-    root.dataset.mode = mode;
-    if (toggle) {
-      toggle.querySelectorAll('button').forEach((b) => {
-        b.classList.toggle('active', b.dataset.mode === mode);
-      });
-    }
-    // closing anything open when switching modes
-    root.querySelectorAll('.cert-inline-panel.open').forEach((p) => p.classList.remove('open'));
-    closeModal();
-  }
-
-  if (toggle) {
-    toggle.querySelectorAll('button').forEach((btn) => {
-      btn.addEventListener('click', () => setMode(btn.dataset.mode));
-    });
-  }
-
-  // Inline mode: clicking a card opens/closes the panel right after it
   root.querySelectorAll('[data-cert-card]').forEach((card) => {
     card.addEventListener('click', () => {
-      const mode = root.dataset.mode;
-      const panel = document.getElementById(card.dataset.panelId);
-      if (mode === 'inline') {
-        const wasOpen = panel.classList.contains('open');
-        root.querySelectorAll('.cert-inline-panel.open').forEach((p) => p.classList.remove('open'));
-        if (!wasOpen) panel.classList.add('open');
-      } else if (mode === 'modal') {
-        openModal(card.dataset.name, card.dataset.embedUrl, card.dataset.embedKind);
-      }
+      openModal(card.dataset.name, card.dataset.embedUrl, card.dataset.embedKind);
     });
   });
 

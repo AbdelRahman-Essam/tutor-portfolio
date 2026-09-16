@@ -1,6 +1,7 @@
 {
-  "id": "faa3269284cc",
+  "id": "8c3647675102",
   "profileKey": "ahmed-mohamed",
+  "kind": "tutor",
   "status": "Approved",
   "visibility": "public",
   "featured": true,
@@ -54,7 +55,7 @@
       "proficiency": "Native"
     }
   ],
-  "technicalSkills": [
+  "skills": [
     "Zoom",
     "Google Meet",
     "Microsoft Teams",
@@ -65,6 +66,7 @@
   "videos": [
     {
       "title": "About Me",
+      "type": "Introduction / About Me",
       "description": "A short introduction about my teaching experience, interests, and approach to teaching English.",
       "provider": "youtube",
       "id": "3QYC2oXTdUA",
@@ -72,6 +74,7 @@
     },
     {
       "title": "My Teaching Style",
+      "type": "Teaching Style",
       "description": "A short video explaining how I make English lessons interactive and practical for students.",
       "provider": "youtube",
       "id": "S7uKF02bD-4",
@@ -79,21 +82,13 @@
     },
     {
       "title": "Sample English Lesson",
+      "type": "Sample English Lesson",
       "description": "A short demonstration of an English lesson for intermediate-level students.",
       "provider": "drive",
       "id": "1RtwkxAw7yNnkrmhErnw0kheX_6MlvLA7",
       "embedUrl": "https://drive.google.com/file/d/1RtwkxAw7yNnkrmhErnw0kheX_6MlvLA7/preview"
     }
   ],
-  "contacts": {
-    "email": "ahmed.tutor@example.com",
-    "whatsapp": "+201012345678",
-    "phone": "+201012345678",
-    "telegram": "@ahmedtutor",
-    "facebook": "https://facebook.com/ahmed.tutor",
-    "instagram": "https://instagram.com/ahmed.tutor",
-    "linkedin": "https://linkedin.com/in/ahmed-tutor"
-  },
   "certificates": [
     {
       "name": "TESOL Certificate",
@@ -128,5 +123,14 @@
         "embedUrl": "https://drive.google.com/file/d/1N3SR9O9I9BTJxxG8BwOKMCnLsRrsoaot/preview"
       }
     }
-  ]
+  ],
+  "contacts": {
+    "email": "ahmed.tutor@example.com",
+    "whatsapp": "+201012345678",
+    "phone": "+201012345678",
+    "telegram": "@ahmedtutor",
+    "facebook": "https://facebook.com/ahmed.tutor",
+    "instagram": "https://instagram.com/ahmed.tutor",
+    "linkedin": "https://linkedin.com/in/ahmed-tutor"
+  }
 }

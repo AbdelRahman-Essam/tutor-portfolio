@@ -1,0 +1,131 @@
+Timestamp,Email Address,Full Name,Professional Title,Profession / Career Field,Specialization,Profile Photo,Professional Summary,Preferred Profile Key,Location,Years of Experience,Professional Experience,Areas of Expertise ( Professional Skills),Software / Tools,Highest Qualification,Institution,Graduation Year,Additional Qualifications,Work Experience,Projects & Portfolio,Video 1 — Title,Video 1 — Type,Video 1 — Description,Video 1 — YouTube/GoogleDrive URL,Do you want to add another Video,Video 2 — Title,Video 2 — Type,Video 2 — Description,Video 2 — YouTube/GoogleDrive URL,Do you want to add another Video,Video 3 — Title,Video 3 — Type,Video 3 — Description,Video 3 — YouTube/GoogleDrive URL,Do you want to add another Video,Video 4 — Title,Video 4 — Type,Video 4 — Description,Video 4 — YouTube/GoogleDrive URL,Do you want to add another Video,Video 5 — Title,Video 5 — Type,Video 5 — Description,Video 5 — YouTube/GoogleDrive URL,Certificate 1 — Name,Certificate 1 — Issuing Organization,Certificate 1 — Date,Certificate 1 — Description,Certificate 1 — File,Do you want to add another Certificate?,Certificate 2 — Name,Certificate 2 — Issuing Organization,Certificate 2 — Date,Certificate 2 — Description,Certificate 2 — File,Do you want to add another Certificate?,Certificate 3 — Name,Certificate 3 — Issuing Organization,Certificate 3 — Date,Certificate 3 — Description,Certificate 3 — File,Do you want to add another Certificate?,Certificate — Name,Certificate — Issuing Organization,Certificate — Date,Certificate — Description,Certificate — File,Do you want to add another Certificate?,Certificate — Name,Certificate — Issuing Organization,Certificate — Date,Certificate — Description,Certificate — File,Do you want to add another Certificate?,Certificate — Name,Certificate — Issuing Organization,Certificate — Date,Certificate — Description,Certificate — File,Do you want to add another Certificate?,Certificate — Name,Certificate — Issuing Organization,Certificate — Date,Certificate — Description,Certificate — File,Do you want to add another Certificate?,Languages,Professional Email,WhatsApp Number,Phone Number,Telegram,Facebook,Instagram,LinkedIn,Personal Website,Github,Preferred Profile Theme,Profile Visibility,Publication Consent,Information Accuracy,Status,Featured,Profile Key,Admin Notes,,
+9/16/2026 23:24:17,eng.abdelrahman.essam2022@gmail.com,Abdelrahman Essam,Senior Embedded Software Engineer,Engineering,Embedded Systems & Functional Safety Engineering,https://drive.google.com/open?id=1xi-_0sZMFtzTnEhj7Lj4LpW9v7pBALiJ,"Senior Software Engineer with experience in Functional Safety Embedded Software Engineering, hardware design, and embedded systems development. Proficient in Embedded C, C++, Python, and TCL, with expertise in microcontroller architectures, IoT platforms, hardware design, and software development for automotive, robotics, aerospace, railway, and agriculture applications.",eng-abdelrahman-essam,"Alexandria, Egypt",4,"Experienced in embedded software and hardware development, Functional Safety Engineering, tool engineering, customer technical interface, and research and development. Professional experience includes automotive, robotics, railway, aerospace, and agriculture applications. Responsibilities have included embedded software development, HAL development, hardware design, software performance analysis, automated tooling, testing, and CI/CD implementation.","Embedded Software Development, Functional Safety Engineering, Embedded C/C++, Python, TCL, Microcontroller & SoC Development, Hardware Abstraction Layer (HAL), Hardware Design, PCB Design, IoT Systems, Wireless Communication, Software Performance Analysis, Debugging & Optimization, Tool Engineering, CI/CD, DevOps for Embedded Systems, Git, Agile/Scrum, CMake, Make, Time-Triggered Architecture, System Integration, Technical Support, Customer Interface, Research & Development.","VS Code, Altium Designer, Eagle CAD, KiCad, Git, CMake, Make, Python, TCL, Qt, Firebase",B.Sc. in Electronics and Communication Engineering,Alexandria University,2022,"Functional Safety Engineering — ISO 26262
+Embedded Software Development
+IoT, Robotics and Embedded Systems Training & Technical Support
+Agile Methodologies
+CI/CD and DevOps for Embedded Software","Experience 1
+
+Position:
+Embedded Software Engineer
+
+Organization:
+Swift Act
+
+Period:
+Jul 2022 – Present
+
+Description:
+
+Embedded software development and Functional Safety Engineering for automotive and robotics applications. Responsibilities include developing C code following MISRA guidelines, software performance analysis, HAL development for multiple microcontrollers and SoCs, embedded software R&D, hardware design, customer interface, and tool engineering.
+
+Experience 2
+
+Position:
+Instructor & Technical Support — IoT, Robotics and Embedded Systems
+
+Organization:
+EME ITIDA, Ministry of Communications
+
+Period:
+Sep 2022 – Present
+
+Description:
+
+Delivered comprehensive training sessions on IoT, robotics, and embedded systems through hands-on workshops and interactive technical support.
+
+Experience 3
+
+Position:
+Embedded Systems Designer — Software & Hardware
+
+Organization:
+Freelance Agencies
+
+Period:
+Jun 2019 – Sep 2024
+
+Description:
+
+Designed and developed embedded devices including both software and hardware as complete products.
+
+Experience 4
+
+Position:
+Embedded Hardware Design Engineer — Contract
+
+Organization:
+FarmTopia
+
+Period:
+Sep 2021 – Jan 2022","Project 1
+
+Name:
+CubeSat System
+
+Description:
+
+Designed and implemented an ARM-based Time-Triggered Architecture CubeSat system including software and hardware. Worked on the communication subsystem, MCU and component selection, COMMS software implementation, subsystem integration, and debugging.
+
+Project 2
+
+Name:
+Autonomous Warehouse Robot Functional Safety
+
+Description:
+
+Implemented Functional Safety software for an Autonomous Warehouse Robot Wrapper system.
+
+Project 3
+
+Name:
+Railway Train Brake Testing System
+
+Description:
+
+Developed Functional Safety software for Railway Train Brake Testing Systems in compliance with safety standards.
+
+Project 4
+
+Name:
+Autonomous Robotic Lawn Mowing System
+
+Description:
+
+Developed Functional Safety software for autonomous robotic lawn mowing systems used in golf courses.
+
+Project 5
+
+Name:
+ESP32 Walkie-Talkie
+
+Description:
+
+Developed an ESP32-based walkie-talkie using I2S and DMA.
+
+Project 6
+
+Name:
+Smart Chicken Farm Monitoring & Control System
+
+Description:
+
+Developed an autonomous robot and an IoT-based smart chicken farm monitoring and control system. The project received first place in LMR 18 — Let's Make a Robot.
+
+Project 7
+
+Name:
+IoT Products
+
+Description:
+
+Delivered end-to-end IoT products covering embedded firmware, Flutter software, and hardware design including schematics and PCB layout.
+
+Project 8
+
+Name:
+Embedded Software DevOps Pipeline
+
+Description:
+
+Designed and implemented a complete DevOps pipeline for embedded software development, testing, and validation.",About Me,Introduction,Introduction to my Experience of Education,https://drive.google.com/file/d/1fJJd1ldllfXdVNtD9wRhLBwpmi1E0H8z/view?t=5.432,Yes,Introduction Eng Abdelrahman Essam in English,Professional Overview,Introduction to my Experience of Freelancing/ or Company Work,https://www.youtube.com/watch?v=EakXpHbUE7A,Yes,Introduction Eng Abdelrahman Essam in Arabic,Professional Overview,Introduction to my Experience of Freelancing/ or Company Work,https://www.youtube.com/watch?v=BG13KIjW7tQ,Yes,What is IoT,Demonstration,Understanding what is IoT(Internet of Things),https://www.youtube.com/watch?v=j7mwHWBjSWk,Yes,Presentation of IoT,Presentation,Quick part of Summer Camp for IoT,https://drive.google.com/file/d/143TTxNdROH95015EIAgQ_-giZGBS_03Q/view?usp=sharing,IoT Certificate,ITIDA  (Information Technology Industry Development Agency),11/11/2021,IoT Track of 50Hrs Course within Internship Program by Egypt Makes Electronics,https://drive.google.com/open?id=1r6mWi_iOJzSaLqJaRfVaflkVRARkhNRv,Yes,Functional Safety Certificate,SafeTTy Systems LTD-UK,12/1/2022,Functional Safety Development & Analysis for Embedded Systems,https://drive.google.com/open?id=11pNmKyI2hGZrdYWCDIiyJbGQU5vsxFwf,Yes,Software Design Certificate,SwiftAct,9/15/2022,Clean and Reliable Design for Embedded Software Modules,https://drive.google.com/open?id=1GqkvnJHhD69WG6YAm1CEe3PAGwG5e77L,Yes,Embedded Systems Certificate,uCoders-VLSI Egypt,10/15/2019,"Embedded Systems Road Map of AVR, ARM",https://drive.google.com/open?id=1oBSTazSWLpvuVvVGyQq-Nm7t7Gq7g80o,Yes,ISO 26262 Certificate,Udemy,12/22/2025,ISO 26262 Functional Safety Crash Course,https://drive.google.com/open?id=1uMmVg37QY3xkRyp52qNShJ3M86Q4h9u0,Yes,LMR 1st Place Certificate,LMR Science Club,10/18/2018,Won the First place at LMR-18 Competition of Creating a Robot to do Specific Tasks,https://drive.google.com/open?id=1ft5rdr7PuaPYkjNmebeQp41k3-4hfgw0,Yes,ERES Certificate,SwiftAct,11/17/2022,Engineering of Reliable Embedded Systems,https://drive.google.com/open?id=1yUAp6ibb-8KdGtq8Quc-rSwKgXpkvhxT,Yes,"Arabic — Native
+English — Fluent",abdelrahmanessam2022@gmail.com,+201010387149,+201010387149,,https://www.facebook.com/eng.abdelrahman.essam/,,https://www.linkedin.com/in/abdelrahman-essam-embedded-systems/,,https://github.com/AbdelRahman-Essam/,Sand,Public,"I confirm that the information, photo, videos, certificates, and contact information I submit may be displayed on my tutor profile according to the visibility setting I select.",I confirm that the information I have provided is accurate and belongs to me.,Approved,Yes,,,,

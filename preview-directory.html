@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Profile Directory</title>
+<style>
 /* Tutor Portfolio — base styles + theme tokens
    One base palette (paper/ink/hairline), theme only swaps the accent pair. */
 
@@ -587,3 +594,125 @@ section.profile-section h2 {
   margin-left: 8px;
   vertical-align: middle;
 }
+
+</style>
+</head>
+<body data-theme="emerald">
+  <header class="topbar">
+    <div class="container">
+      <a class="brand" href="./">Profile Directory</a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="directory-header">
+      <h1>Find a tutor or professional</h1>
+      <p>Browse profiles with videos, certificates, experience and contact details.</p>
+    </div>
+
+    <div class="search-row">
+      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search tutors by name or title">
+      <div class="search-count" data-search-count>2 profiles</div>
+    </div>
+
+    <div class="tutor-grid">
+      
+  <a href="#" class="tutor-card featured" data-theme="sand"
+     data-tutor-card data-name="Abdelrahman Essam" data-title="Senior Embedded Software Engineer Embedded Systems &amp; Functional Safety Engineering Embedded Software Development Functional Safety Engineering Alexandria, Egypt">
+    <div class="card-top">
+      <img class="avatar" src="https://drive.google.com/thumbnail?id=1xi-_0sZMFtzTnEhj7Lj4LpW9v7pBALiJ&amp;sz=w1000" alt="Abdelrahman Essam" loading="lazy">
+      <div>
+        <h3>Abdelrahman Essam</h3>
+        <p class="title">Senior Embedded Software Engineer</p>
+        <p class="title">Alexandria, Egypt</p>
+      </div>
+    </div>
+    <span class="featured-mark">Featured tutor</span>
+    <p class="summary">Senior Software Engineer with experience in Functional Safety Embedded Software Engineering, hardware design, and embedded systems development. Proficient in Embedded C, C++, Python, and TCL, with expertise in microcontroller architectures, IoT platforms, hardware design, and software development for automotive, robotics, aerospace, railway, and agriculture applications.</p>
+    <div class="tag-row"><span class="tag">Embedded Systems &amp; Functional Safety Engineering</span><span class="tag">Embedded Software Development</span><span class="tag">Functional Safety Engineering</span></div>
+  </a>
+
+  <a href="#" class="tutor-card featured" data-theme="emerald"
+     data-tutor-card data-name="Ahmed Mohamed" data-title="English &amp; Islamic English Tutor General English Conversational English English for Adults ">
+    <div class="card-top">
+      <img class="avatar" src="https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&amp;sz=w1000" alt="Ahmed Mohamed" loading="lazy">
+      <div>
+        <h3>Ahmed Mohamed</h3>
+        <p class="title">English &amp; Islamic English Tutor</p>
+        
+      </div>
+    </div>
+    <span class="featured-mark">Featured tutor</span>
+    <p class="summary">I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.</p>
+    <div class="tag-row"><span class="tag">General English</span><span class="tag">Conversational English</span><span class="tag">English for Adults</span></div>
+  </a>
+    </div>
+    <div class="empty-state" data-empty-state style="display:none;">
+      No profiles match that search.
+    </div>
+  </div>
+
+  <footer class="site-footer">Generated 2026-09-16T20:30:06.243Z</footer>
+  <script>
+// ---------- Directory search (name/title only, per v1 scope) ----------
+(function initSearch() {
+  const input = document.querySelector('[data-search-input]');
+  if (!input) return;
+  const cards = Array.from(document.querySelectorAll('[data-tutor-card]'));
+  const countEl = document.querySelector('[data-search-count]');
+  const emptyEl = document.querySelector('[data-empty-state]');
+
+  function apply() {
+    const q = input.value.trim().toLowerCase();
+    let visible = 0;
+    cards.forEach((card) => {
+      const haystack = (card.dataset.name + ' ' + card.dataset.title).toLowerCase();
+      const match = !q || haystack.includes(q);
+      card.style.display = match ? '' : 'none';
+      if (match) visible++;
+    });
+    if (countEl) countEl.textContent = `${visible} profile${visible === 1 ? '' : 's'}`;
+    if (emptyEl) emptyEl.style.display = visible === 0 ? '' : 'none';
+  }
+
+  input.addEventListener('input', apply);
+  apply();
+})();
+
+// ---------- Certificate display: lightbox/modal ----------
+(function initCertificates() {
+  const root = document.querySelector('[data-cert-section]');
+  if (!root) return;
+
+  root.querySelectorAll('[data-cert-card]').forEach((card) => {
+    card.addEventListener('click', () => {
+      openModal(card.dataset.name, card.dataset.embedUrl, card.dataset.embedKind);
+    });
+  });
+
+  const backdrop = document.querySelector('[data-cert-modal-backdrop]');
+  const modalTitle = document.querySelector('[data-cert-modal-title]');
+  const modalBody = document.querySelector('[data-cert-modal-body]');
+  const closeBtn = document.querySelector('[data-cert-modal-close]');
+
+  function openModal(name, embedUrl, kind) {
+    if (!backdrop) return;
+    modalTitle.textContent = name;
+    modalBody.innerHTML = kind === 'image'
+      ? `<img src="${embedUrl}" alt="${name}">`
+      : `<iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe>`;
+    backdrop.classList.add('open');
+  }
+  function closeModal() {
+    if (!backdrop) return;
+    backdrop.classList.remove('open');
+    if (modalBody) modalBody.innerHTML = '';
+  }
+  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+})();
+
+</script>
+</body>
+</html>

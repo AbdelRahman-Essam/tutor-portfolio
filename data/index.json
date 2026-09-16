@@ -1,8 +1,29 @@
 {
-  "generatedAt": "2026-09-14T19:11:45.540Z",
-  "tutors": [
+  "generatedAt": "2026-09-16T20:30:06.243Z",
+  "profiles": [
+    {
+      "profileKey": "eng-abdelrahman-essam",
+      "kind": "professional",
+      "featured": true,
+      "name": "Abdelrahman Essam",
+      "title": "Senior Embedded Software Engineer",
+      "photo": {
+        "provider": "drive",
+        "id": "1xi-_0sZMFtzTnEhj7Lj4LpW9v7pBALiJ",
+        "embedUrl": "https://drive.google.com/thumbnail?id=1xi-_0sZMFtzTnEhj7Lj4LpW9v7pBALiJ&sz=w1000"
+      },
+      "summary": "Senior Software Engineer with experience in Functional Safety Embedded Software Engineering, hardware design, and embedded systems development. Proficient in Embedded C, C++, Python, and TCL, with expertise in microcontroller architectures, IoT platforms, hardware design, and software development for automotive, robotics, aerospace, railway, and agriculture applications.",
+      "theme": "sand",
+      "location": "Alexandria, Egypt",
+      "tags": [
+        "Embedded Systems & Functional Safety Engineering",
+        "Embedded Software Development",
+        "Functional Safety Engineering"
+      ]
+    },
     {
       "profileKey": "ahmed-mohamed",
+      "kind": "tutor",
       "featured": true,
       "name": "Ahmed Mohamed",
       "title": "English & Islamic English Tutor",
@@ -13,58 +34,10 @@
       },
       "summary": "I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.",
       "theme": "emerald",
-      "specializations": [
+      "tags": [
         "General English",
         "Conversational English",
-        "English for Adults",
-        "Business English",
-        "Islamic Studies in English",
-        "Quran-related English",
-        "English for Non-Native Speakers"
-      ],
-      "ageGroups": [
-        "Children",
-        "Teenagers",
-        "Adults"
-      ],
-      "levels": [
-        "Beginner",
-        "Elementary",
-        "Intermediate",
-        "Upper Intermediate"
-      ],
-      "format": [
-        "Online"
-      ]
-    },
-    {
-      "profileKey": "mohamed-al-bastawy",
-      "featured": true,
-      "name": "Mohamed Ahmed Hassan",
-      "title": "Qur'an and Islamic Studies Teacher",
-      "photo": {
-        "provider": "drive",
-        "id": "1Hay1XwGpxForqv0ZDjUcQql1BhEfP3Ao",
-        "embedUrl": "https://drive.google.com/thumbnail?id=1Hay1XwGpxForqv0ZDjUcQql1BhEfP3Ao&sz=w1000"
-      },
-      "summary": "I am an experienced Qur’an and Islamic Studies teacher with over two years of experience teaching non-Arabic-speaking Muslims in English. I have worked with several well-established academies, including Makkah Academy, Super Muslim Academy, Ruwaq Al-Quran Academy, Bedaya Academy, and Noor Al-Quran Academy, in addition to providing private lessons. I specialize in teaching Qur’an, Tajweed, Tafsir, and Islamic Studies. My lessons are engaging, structured, and tailored to each student’s level, helping them learn confidently while developing a strong connection with their faith.",
-      "theme": "purple",
-      "specializations": [
-        "Islamic English",
-        "Islamic Studies in English",
-        "Quran-related English"
-      ],
-      "ageGroups": [
-        "Teenagers",
-        "Adults"
-      ],
-      "levels": [
-        "Beginner",
-        "Elementary",
-        "Intermediate"
-      ],
-      "format": [
-        "Online"
+        "English for Adults"
       ]
     }
   ]
