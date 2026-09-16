@@ -42,9 +42,10 @@
   function openModal(name, embedUrl, kind) {
     if (!backdrop) return;
     modalTitle.textContent = name;
-    modalBody.innerHTML = kind === 'image'
+    modalBody.innerHTML = (kind === 'image'
       ? `<img src="${embedUrl}" alt="${name}">`
-      : `<iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe>`;
+      : `<iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe>`)
+      + `<p class="cert-modal-fallback">Certificate not showing? <a href="${embedUrl}" target="_blank" rel="noopener">Open it in a new tab</a>.</p>`;
     backdrop.classList.add('open');
   }
   function closeModal() {

@@ -33,16 +33,7 @@ function avatarHtml(photo, name, cssClass) {
   return `<div class="${cssClass === 'avatar' ? 'avatar-fallback' : 'avatar-fallback'}">${esc(initials(name))}</div>`;
 }
 
-const CORNER_ORNAMENT_SVG = `
-<svg class="corner-ornament" viewBox="0 0 168 168" fill="none" aria-hidden="true">
-  <circle cx="84" cy="84" r="82" stroke="currentColor" stroke-width="1" opacity="0.5"/>
-  <g opacity="0.9" stroke="currentColor" stroke-width="1.2">
-    <path d="M84 2 L98 40 L84 78 L70 40 Z"/>
-    <path d="M84 166 L98 128 L84 90 L70 128 Z"/>
-    <path d="M2 84 L40 70 L78 84 L40 98 Z"/>
-    <path d="M166 84 L128 70 L90 84 L128 98 Z"/>
-  </g>
-</svg>`;
+const CORNER_ORNAMENT_SVG = ''; // retired along with the circular photo crop (see git history if wanted back)
 
 // ---------------------------------------------------------------------------
 // Directory page
@@ -63,7 +54,7 @@ function tutorCard(t) {
         ${t.location ? `<p class="title">${esc(t.location)}</p>` : ''}
       </div>
     </div>
-    ${t.featured ? '<span class="featured-mark">Featured tutor</span>' : ''}
+    ${t.featured ? `<span class="featured-mark">Featured ${t.kind === 'professional' ? 'professional' : 'tutor'}</span>` : ''}
     ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ''}
     ${tags.length ? `<div class="tag-row">${tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}</div>` : ''}
   </a>`;
@@ -356,7 +347,7 @@ function renderProfile(t) {
 <title>${esc(t.personal.name)}${t.personal.title ? ' — ' + esc(t.personal.title) : ''}</title>
 <link rel="stylesheet" href="../../assets/styles.css">
 </head>
-<body data-theme="${theme}">
+<body class="profile-body" data-theme="${theme}">
   <header class="topbar">
     <div class="container">
       <a class="brand" href="../../">Profile Directory</a>
@@ -397,7 +388,7 @@ function renderProfile(t) {
     ${contactSection(t.contacts)}
   </div>
 
-  <footer class="site-footer">${esc(t.personal.name)} — Tutor Directory</footer>
+  <footer class="site-footer">${esc(t.personal.name)} — Profile Directory</footer>
   <script src="../../assets/site.js"></script>
 </body>
 </html>`;

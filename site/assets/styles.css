@@ -165,16 +165,16 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .tutor-card img.avatar {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: var(--photo-focus);
+  border-radius: 10px;
+  object-fit: contain;
+  background: var(--accent-tint);
   border: 1px solid var(--line-strong);
   flex-shrink: 0;
 }
 .tutor-card .avatar-fallback {
   width: 56px;
   height: 56px;
-  border-radius: 50%;
+  border-radius: 10px;
   background: var(--accent-tint);
   color: var(--accent);
   display: flex;
@@ -236,6 +236,16 @@ p { margin: 0 0 1em; max-width: 68ch; }
   padding: 48px 24px 96px;
 }
 
+/* "Full theme": the whole profile page picks up its theme's wash, not just
+   accent highlights on a neutral background. (Directory page stays neutral
+   since it lists many themes at once — only single-theme profile pages get this.) */
+body.profile-body {
+  background: var(--accent-tint);
+}
+body.profile-body .topbar {
+  background: var(--paper);
+}
+
 .profile-header {
   text-align: center;
   padding-bottom: 40px;
@@ -244,40 +254,24 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 
 .photo-frame {
-  width: 172px;
-  height: 172px;
+  width: 200px;
+  height: 240px;
   margin: 0 auto 20px;
   position: relative;
-  padding: 10px;
-}
-.photo-frame svg.corner-ornament {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  color: var(--accent);
-}
-.photo-frame img,
-.photo-frame .avatar-fallback {
-  width: 100%;
-  height: 100%;
-  border-radius: 50%;
-  object-fit: cover;
-  object-position: var(--photo-focus);
-  display: block;
-  position: relative;
-}
-
-/* Alternative: uncropped portrait. Add class="photo-frame full" to show the
-   whole photo with nothing cut off (letterboxed instead of cropped). */
-.photo-frame.full { width: 200px; height: 240px; }
-.photo-frame.full img {
-  border-radius: 4px;
-  object-fit: contain;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
   background: var(--accent-tint);
+  overflow: hidden;
 }
-.photo-frame.full svg.corner-ornament { display: none; }
+.photo-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
 .photo-frame .avatar-fallback {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -586,4 +580,12 @@ section.profile-section h2 {
   color: var(--accent-ink);
   margin-left: 8px;
   vertical-align: middle;
+}
+
+.cert-modal-fallback {
+  padding: 10px 16px;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+  border-top: 1px solid var(--line);
 }
