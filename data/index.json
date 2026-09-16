@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-09-12T10:13:12.970Z",
+  "generatedAt": "2026-09-14T19:11:45.540Z",
   "tutors": [
     {
       "profileKey": "ahmed-mohamed",
@@ -32,6 +32,36 @@
         "Elementary",
         "Intermediate",
         "Upper Intermediate"
+      ],
+      "format": [
+        "Online"
+      ]
+    },
+    {
+      "profileKey": "mohamed-al-bastawy",
+      "featured": true,
+      "name": "Mohamed Ahmed Hassan",
+      "title": "Qur'an and Islamic Studies Teacher",
+      "photo": {
+        "provider": "drive",
+        "id": "1Hay1XwGpxForqv0ZDjUcQql1BhEfP3Ao",
+        "embedUrl": "https://drive.google.com/thumbnail?id=1Hay1XwGpxForqv0ZDjUcQql1BhEfP3Ao&sz=w1000"
+      },
+      "summary": "I am an experienced Qur’an and Islamic Studies teacher with over two years of experience teaching non-Arabic-speaking Muslims in English. I have worked with several well-established academies, including Makkah Academy, Super Muslim Academy, Ruwaq Al-Quran Academy, Bedaya Academy, and Noor Al-Quran Academy, in addition to providing private lessons. I specialize in teaching Qur’an, Tajweed, Tafsir, and Islamic Studies. My lessons are engaging, structured, and tailored to each student’s level, helping them learn confidently while developing a strong connection with their faith.",
+      "theme": "purple",
+      "specializations": [
+        "Islamic English",
+        "Islamic Studies in English",
+        "Quran-related English"
+      ],
+      "ageGroups": [
+        "Teenagers",
+        "Adults"
+      ],
+      "levels": [
+        "Beginner",
+        "Elementary",
+        "Intermediate"
       ],
       "format": [
         "Online"
