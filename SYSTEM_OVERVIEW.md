@@ -354,6 +354,45 @@ Sans** (body). One deliberate ornamental element (a thin geometric ring
 around the profile photo) — everything else is flat, hairline-bordered, no
 shadows.
 
+**Any theme word now gets its own color** (`scripts/lib/theme-color.js`).
+Previously only the 7 names in the table above actually changed anything —
+type any other word into `Preferred Profile Theme` and the profile silently
+rendered emerald, with no visual distinction from someone who picked no
+theme at all. Now:
+- The 7 curated names above still resolve to their exact hand-picked hex
+  values (unchanged output for every profile that already uses them).
+- `dark` still triggers the whole-palette flip via the existing
+  `[data-theme="dark"]` CSS block (paper/ink invert, not just the accent —
+  handled separately, excluded from per-word generation).
+- Anything else (`"Ocean"`, `"Rose Gold"`, a submitter's own name, whatever
+  someone types) is hashed (DJB2, deterministic — no dependency, same word
+  → same color on every rebuild) into a hue, then rendered at the same
+  saturation/lightness range as the curated jewel tones (~25-32% lightness,
+  ~40-80% saturation), so it reads as another deliberate color choice
+  rather than a washed-out placeholder, while still reliably differing from
+  every other word.
+
+`build-site.js` calls `resolveTheme()` once per profile/card and writes the
+result as an inline `style="--accent:…;--accent-tint:…;"` alongside
+`data-theme="<slug>"` — inline styles win over the CSS attribute selectors
+in `styles.css`, so curated names are untouched (no inline style is
+emitted for them: the existing `[data-theme="emerald"]` etc. rules keep
+doing the work) and every other word gets its accent set directly, with no
+need to hand-add a CSS rule per new theme word.
+
+**The theme color is a reference, not a page wash.** An earlier version
+of the site used `--accent-tint` as a full flat background on featured
+directory cards, on card hover, and on the entire profile page — with a
+different pastel per theme sitting edge-to-edge in the directory grid, this
+read as a set of mismatched colored construction-paper tiles rather than a
+professional site. Fixed by treating the theme color the way an accent
+color is normally used: a thin 4px bar at the very top of each profile
+page, a 3px left border marking a featured directory card, headings, links,
+pill/tag backgrounds, and hover/focus states — never a full-bleed
+background. The directory and profile pages both stay on the same neutral
+paper (or, for the `dark` theme, the same neutral dark) regardless of which
+accent a given profile picked.
+
 ### Photo cropping
 Profile photos are shown in a circular frame, cropped with `object-fit:
 cover`. A plain centred crop cuts off faces in a lot of real portrait

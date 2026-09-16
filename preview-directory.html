@@ -61,7 +61,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--accent); }
+a { color: var(--accent); transition: color 0.15s ease; }
 a:focus-visible, button:focus-visible, input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -99,6 +99,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
   font-weight: 500;
   color: var(--ink);
   text-decoration: none;
+  transition: color 0.15s ease;
 }
 .brand:hover { color: var(--accent); }
 
@@ -128,6 +129,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
   background: transparent;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
+  transition: border-color 0.15s ease;
 }
 .search-input::placeholder { color: var(--ink-soft); }
 .search-input:focus { border-color: var(--accent); }
@@ -161,8 +163,12 @@ p { margin: 0 0 1em; max-width: 68ch; }
   gap: 12px;
   text-decoration: none;
   color: inherit;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
-.tutor-card:hover { background: var(--accent-tint); }
+.tutor-card:hover {
+  box-shadow: inset 0 0 0 1px var(--accent);
+  transform: translateY(-1px);
+}
 
 .tutor-card .card-top {
   display: flex;
@@ -172,16 +178,17 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .tutor-card img.avatar {
   width: 56px;
   height: 56px;
-  border-radius: 10px;
-  object-fit: contain;
+  border-radius: 50%;
+  object-fit: cover;
+  object-position: var(--photo-focus);
   background: var(--accent-tint);
-  border: 1px solid var(--line-strong);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent-tint);
   flex-shrink: 0;
 }
 .tutor-card .avatar-fallback {
   width: 56px;
   height: 56px;
-  border-radius: 10px;
+  border-radius: 50%;
   background: var(--accent-tint);
   color: var(--accent);
   display: flex;
@@ -190,7 +197,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
   font-family: 'Fraunces', serif;
   font-size: 1.3rem;
   flex-shrink: 0;
-  border: 1px solid var(--line-strong);
+  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent-tint);
 }
 .tutor-card h3 {
   font-size: 1.15rem;
@@ -219,15 +226,21 @@ p { margin: 0 0 1em; max-width: 68ch; }
 .tag {
   font-size: 0.78rem;
   padding: 3px 9px;
-  border: 1px solid var(--line-strong);
+  border: 1px solid transparent;
   border-radius: 999px;
-  color: var(--ink-soft);
-}
-.tutor-card.featured { background: var(--accent-tint); }
-.featured-mark {
-  font-size: 0.75rem;
+  background: var(--accent-tint);
   color: var(--accent-ink);
+}
+.tutor-card.featured { border-left: 3px solid var(--accent); padding-left: 25px; }
+.featured-mark {
+  display: inline-block;
+  font-size: 0.72rem;
   font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+  width: fit-content;
 }
 
 .empty-state {
@@ -243,14 +256,17 @@ p { margin: 0 0 1em; max-width: 68ch; }
   padding: 48px 24px 96px;
 }
 
-/* "Full theme": the whole profile page picks up its theme's wash, not just
-   accent highlights on a neutral background. (Directory page stays neutral
-   since it lists many themes at once — only single-theme profile pages get this.) */
+/* The theme color is a reference accent, not a full-page wash: it shows up
+   in a thin top bar, headings, links, pills and borders — the page itself
+   stays on the same neutral paper as the directory, whatever the theme. */
 body.profile-body {
-  background: var(--accent-tint);
-}
-body.profile-body .topbar {
   background: var(--paper);
+}
+body.profile-body::before {
+  content: "";
+  display: block;
+  height: 4px;
+  background: var(--accent);
 }
 
 .profile-header {
@@ -262,18 +278,19 @@ body.profile-body .topbar {
 
 .photo-frame {
   width: 200px;
-  height: 240px;
+  height: 200px;
   margin: 0 auto 20px;
   position: relative;
-  border: 1px solid var(--line-strong);
-  border-radius: 6px;
+  border-radius: 50%;
   background: var(--accent-tint);
   overflow: hidden;
+  box-shadow: 0 0 0 4px var(--paper), 0 0 0 7px var(--accent);
 }
 .photo-frame img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  object-position: var(--photo-focus);
   display: block;
 }
 .photo-frame .avatar-fallback {
@@ -287,6 +304,15 @@ body.profile-body .topbar {
   font-family: 'Fraunces', serif;
   font-size: 2.6rem;
 }
+/* The "whole photo, nothing cropped" alternative: add class="full" to
+   .photo-frame to switch to a rounded-square, letterboxed presentation
+   instead of the circular crop above. */
+.photo-frame.full {
+  border-radius: 6px;
+  box-shadow: none;
+  border: 1px solid var(--line-strong);
+}
+.photo-frame.full img { object-fit: contain; }
 
 .profile-header h1 {
   font-size: clamp(1.7rem, 3vw, 2.3rem);
@@ -318,9 +344,10 @@ body.profile-body .topbar {
   text-decoration: none;
   color: var(--ink);
   font-size: 0.92rem;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 .contact-chip svg { flex-shrink: 0; color: var(--ink-soft); }
-.contact-chip:hover { border-color: var(--accent); color: var(--accent-ink); }
+.contact-chip:hover { border-color: var(--accent); background: var(--accent-tint); color: var(--accent-ink); }
 .contact-chip:hover svg { color: var(--accent-ink); }
 
 section.profile-section {
@@ -330,7 +357,18 @@ section.profile-section {
 section.profile-section:last-of-type { border-bottom: none; }
 section.profile-section h2 {
   font-size: 1.3rem;
-  margin-bottom: 16px;
+  margin: 0 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+section.profile-section h2::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  background: var(--accent);
+  border-radius: 2px;
+  flex-shrink: 0;
 }
 
 .pill-list {
@@ -378,6 +416,7 @@ section.profile-section h2 {
   padding-top: 56.25%;
   background: #000;
   border: 1px solid var(--line);
+  overflow: hidden;
 }
 .video-item .frame iframe {
   position: absolute;
@@ -385,6 +424,18 @@ section.profile-section h2 {
   width: 100%;
   height: 100%;
   border: 0;
+}
+/* Google Drive's own /preview page isn't actually responsive — inside a
+   narrow (mobile) iframe it switches to its own cramped layout, rendering
+   the video small in the middle of a lot of empty space ("zoomed out").
+   Fix: always render the Drive iframe at a fixed desktop-like size
+   (matching the same 16:9 as the frame) so Drive never sees a mobile
+   width, then visually scale the whole iframe down to fit the actual
+   container — see the fitDriveVideos() scaling in site.js. */
+.video-item .frame[data-provider="drive"] iframe {
+  width: 640px;
+  height: 360px;
+  transform-origin: top left;
 }
 .video-item h3 {
   font-size: 1.05rem;
@@ -409,8 +460,9 @@ section.profile-section h2 {
   font-family: inherit;
   color: inherit;
   cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.cert-card:hover { border-color: var(--accent); }
+.cert-card:hover { border-color: var(--accent); background: var(--accent-tint); }
 .cert-card h3 {
   font-size: 0.98rem;
   margin: 0 0 4px;
@@ -619,7 +671,7 @@ section.profile-section h2 {
 
     <div class="tutor-grid">
       
-  <a href="#" class="tutor-card featured" data-theme="sand"
+  <a href="#" class="tutor-card featured" data-theme="sand" style="--accent:#A9772F;--accent-tint:#F5ECDD;"
      data-tutor-card data-name="Abdelrahman Essam" data-title="Senior Embedded Software Engineer Embedded Systems &amp; Functional Safety Engineering Embedded Software Development Functional Safety Engineering Alexandria, Egypt">
     <div class="card-top">
       <img class="avatar" src="https://drive.google.com/thumbnail?id=1xi-_0sZMFtzTnEhj7Lj4LpW9v7pBALiJ&amp;sz=w1000" alt="Abdelrahman Essam" loading="lazy">
@@ -634,7 +686,7 @@ section.profile-section h2 {
     <div class="tag-row"><span class="tag">Embedded Systems &amp; Functional Safety Engineering</span><span class="tag">Embedded Software Development</span><span class="tag">Functional Safety Engineering</span></div>
   </a>
 
-  <a href="#" class="tutor-card featured" data-theme="emerald"
+  <a href="#" class="tutor-card featured" data-theme="emerald" style="--accent:#0E6B4F;--accent-tint:#E4F0EA;"
      data-tutor-card data-name="Ahmed Mohamed" data-title="English &amp; Islamic English Tutor General English Conversational English English for Adults ">
     <div class="card-top">
       <img class="avatar" src="https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&amp;sz=w1000" alt="Ahmed Mohamed" loading="lazy">
@@ -649,7 +701,7 @@ section.profile-section h2 {
     <div class="tag-row"><span class="tag">General English</span><span class="tag">Conversational English</span><span class="tag">English for Adults</span></div>
   </a>
 
-  <a href="#" class="tutor-card featured" data-theme="purple"
+  <a href="#" class="tutor-card featured" data-theme="purple" style="--accent:#5B3170;--accent-tint:#EFE4F2;"
      data-tutor-card data-name="Mohamed Ahmed Hassan" data-title="Qur'an and Islamic Studies Teacher Islamic English Islamic Studies in English Quran-related English ">
     <div class="card-top">
       <img class="avatar" src="https://drive.google.com/thumbnail?id=1Hay1XwGpxForqv0ZDjUcQql1BhEfP3Ao&amp;sz=w1000" alt="Mohamed Ahmed Hassan" loading="lazy">
@@ -669,7 +721,7 @@ section.profile-section h2 {
     </div>
   </div>
 
-  <footer class="site-footer">Generated 2026-09-16T20:47:04.465Z</footer>
+  <footer class="site-footer">Generated 2026-09-16T21:34:08.454Z</footer>
   <script>
 // ---------- Directory search (name/title only, per v1 scope) ----------
 (function initSearch() {
@@ -729,6 +781,32 @@ section.profile-section h2 {
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+})();
+
+// ---------- Google Drive video embeds: fit to container width ----------
+// Drive's /preview page renders its own mobile layout once its iframe gets
+// narrow, shrinking the video into the middle of the frame instead of
+// filling it ("zoomed out"). Keeping the iframe itself fixed at a normal
+// desktop size (set in styles.css) and scaling the whole thing down with a
+// CSS transform — instead of resizing the iframe — keeps Drive on its
+// normal, filled-frame layout at every screen size.
+(function fitDriveVideos() {
+  const DRIVE_WIDTH = 640; // matches the fixed iframe width in styles.css
+  const frames = Array.from(document.querySelectorAll('.frame[data-provider="drive"]'));
+  if (!frames.length) return;
+
+  function fit() {
+    frames.forEach((frame) => {
+      const iframe = frame.querySelector('iframe');
+      if (!iframe) return;
+      const scale = frame.clientWidth / DRIVE_WIDTH;
+      iframe.style.transform = `scale(${scale})`;
+    });
+  }
+
+  fit();
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
 })();
 
 </script>

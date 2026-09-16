@@ -1,6 +1,7 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
+const { resolveTheme } = require('./lib/theme-color');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
@@ -35,16 +36,25 @@ function avatarHtml(photo, name, cssClass) {
 
 const CORNER_ORNAMENT_SVG = ''; // retired along with the circular photo crop (see git history if wanted back)
 
+// Builds the data-theme attribute plus, for words outside the curated CSS
+// themes (see scripts/lib/theme-color.js), an inline style setting --accent
+// / --accent-tint directly — so any word typed into "Preferred Profile
+// Theme" in the sheet produces its own color, not just the 7 built-in ones.
+function themeAttrs(rawTheme) {
+  const { slug, accent, tint } = resolveTheme(rawTheme);
+  const style = accent ? ` style="--accent:${accent};--accent-tint:${tint};"` : '';
+  return ` data-theme="${esc(slug)}"${style}`;
+}
+
 // ---------------------------------------------------------------------------
 // Directory page
 // ---------------------------------------------------------------------------
 
 function tutorCard(t) {
-  const theme = esc(t.theme || 'emerald');
   const tags = (t.tags || []).slice(0, 4);
 
   return `
-  <a href="p/${esc(t.profileKey)}/" class="tutor-card${t.featured ? ' featured' : ''}" data-theme="${theme}"
+  <a href="p/${esc(t.profileKey)}/" class="tutor-card${t.featured ? ' featured' : ''}"${themeAttrs(t.theme)}
      data-tutor-card data-name="${esc(t.name)}" data-title="${esc(t.title || '')} ${esc(tags.join(' '))} ${esc(t.location || '')}">
     <div class="card-top">
       ${avatarHtml(t.photo, t.name, 'avatar')}
@@ -206,7 +216,7 @@ function videosSection(videos) {
     <div class="video-grid">
       ${videos.map((v) => `
       <div class="video-item">
-        <div class="frame"><iframe src="${esc(v.embedUrl)}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
+        <div class="frame" data-provider="${esc(v.provider || '')}"><iframe src="${esc(v.embedUrl)}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
         <h3>${esc(v.title)}</h3>
         ${v.description ? `<p>${esc(v.description)}</p>` : ''}
       </div>`).join('')}
@@ -338,7 +348,6 @@ function educationSection(edu) {
 }
 
 function renderProfile(t) {
-  const theme = esc(t.personal.theme || 'emerald');
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -347,7 +356,7 @@ function renderProfile(t) {
 <title>${esc(t.personal.name)}${t.personal.title ? ' — ' + esc(t.personal.title) : ''}</title>
 <link rel="stylesheet" href="../../assets/styles.css">
 </head>
-<body class="profile-body" data-theme="${theme}">
+<body class="profile-body"${themeAttrs(t.personal.theme)}>
   <header class="topbar">
     <div class="container">
       <a class="brand" href="../../">Profile Directory</a>

@@ -57,3 +57,29 @@
   if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
 })();
+
+// ---------- Google Drive video embeds: fit to container width ----------
+// Drive's /preview page renders its own mobile layout once its iframe gets
+// narrow, shrinking the video into the middle of the frame instead of
+// filling it ("zoomed out"). Keeping the iframe itself fixed at a normal
+// desktop size (set in styles.css) and scaling the whole thing down with a
+// CSS transform — instead of resizing the iframe — keeps Drive on its
+// normal, filled-frame layout at every screen size.
+(function fitDriveVideos() {
+  const DRIVE_WIDTH = 640; // matches the fixed iframe width in styles.css
+  const frames = Array.from(document.querySelectorAll('.frame[data-provider="drive"]'));
+  if (!frames.length) return;
+
+  function fit() {
+    frames.forEach((frame) => {
+      const iframe = frame.querySelector('iframe');
+      if (!iframe) return;
+      const scale = frame.clientWidth / DRIVE_WIDTH;
+      iframe.style.transform = `scale(${scale})`;
+    });
+  }
+
+  fit();
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+})();
