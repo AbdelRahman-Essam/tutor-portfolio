@@ -83,3 +83,33 @@
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
 })();
+
+// ---------- Language toggle (Arabic translation) ----------
+// Drives Google's Website Translator (loaded invisibly — see the widget
+// markup and the CSS that hides its own UI) by setting the cookie it reads
+// on load, then reloading. The cookie is set with path=/ so the chosen
+// language carries across every page of the site, not just this one.
+(function initLangSwitch() {
+  const buttons = document.querySelectorAll('[data-lang-btn]');
+  if (!buttons.length) return;
+
+  function currentLang() {
+    const m = document.cookie.match(/googtrans=\/en\/(\w+)/);
+    return m ? m[1] : 'en';
+  }
+
+  const active = currentLang();
+  buttons.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.langBtn === active);
+    btn.addEventListener('click', () => {
+      const lang = btn.dataset.langBtn;
+      if (lang === active) return;
+      if (lang === 'en') {
+        document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+      } else {
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+      }
+      location.reload();
+    });
+  });
+})();

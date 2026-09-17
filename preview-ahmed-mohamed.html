@@ -103,6 +103,41 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 .brand:hover { color: var(--accent); }
 
+/* ---------- Language toggle (see the Google Translate widget in site.js) ---------- */
+.lang-switch {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.lang-btn {
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 6px 14px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+.lang-btn.active { background: var(--accent); color: var(--paper); }
+
+/* Hide Google's own translate UI — the toggle above drives it instead —
+   and undo the top-offset it injects on <body> for its banner frame. */
+#google_translate_element,
+.goog-te-banner-frame,
+.goog-te-gadget-icon { display: none !important; }
+body { top: 0 !important; }
+.goog-text-highlight { background: none !important; box-shadow: none !important; }
+
+/* Once the widget switches the page to Arabic it adds this class to <html>.
+   Flexbox already mirrors itself once `direction: rtl` is set — only the
+   few places using a physical left/right value (not logical start/end)
+   need an explicit flip here. */
+html.translated-rtl body { direction: rtl; }
+html.translated-rtl .tutor-card.featured { border-left: none; border-right: 3px solid var(--accent); padding-left: 28px; padding-right: 25px; }
+html.translated-rtl .profile-header .summary { text-align: right; }
+html.translated-rtl .cover-ribbon { right: auto; left: 14px; }
+
 /* ---------- Directory ---------- */
 .directory-header {
   padding: 56px 0 28px;
@@ -276,6 +311,31 @@ body.profile-body::before {
   border-bottom: 1px solid var(--line);
 }
 
+/* A colorful cover band in the profile's own accent color, with the photo
+   overlapping its bottom edge — gives the header some life without going
+   back to washing the whole page (see the accent-as-reference note above). */
+.profile-cover {
+  height: 120px;
+  border-radius: var(--radius);
+  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 45%, white) 100%);
+  position: relative;
+}
+.cover-ribbon {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--accent-ink);
+}
+.profile-cover + .photo-frame { margin-top: -80px; }
+
 .photo-frame {
   width: 200px;
   height: 200px;
@@ -327,6 +387,49 @@ body.profile-body::before {
   margin: 0 auto 24px;
   text-align: left;
 }
+
+/* Quick-facts: real numbers pulled straight from the profile's own data
+   (years of experience, language count, etc.) — a fast-scanning summary
+   instead of making the visitor read every section to get the basics. */
+.stat-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin: 0 0 24px;
+}
+.stat-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 20px;
+  min-width: 100px;
+}
+.stat-card .stat-value {
+  font-family: 'Fraunces', serif;
+  font-size: 1.5rem;
+  color: var(--accent-ink);
+  line-height: 1.1;
+}
+.stat-card .stat-label {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--accent);
+  color: var(--paper);
+  padding: 12px 26px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 8px;
+  transition: opacity 0.15s ease;
+}
+.cta-button:hover { opacity: 0.88; color: var(--paper); }
 
 .contact-row {
   display: flex;
@@ -463,6 +566,17 @@ section.profile-section h2::before {
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .cert-card:hover { border-color: var(--accent); background: var(--accent-tint); }
+.cert-card .cert-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--accent-tint);
+  color: var(--accent-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
 .cert-card h3 {
   font-size: 0.98rem;
   margin: 0 0 4px;
@@ -655,11 +769,19 @@ section.profile-section h2::before {
   <header class="topbar">
     <div class="container">
       <a class="brand" href="#">Profile Directory</a>
+      
+    <div class="lang-switch" data-lang-switch>
+      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
+      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
+    </div>
     </div>
   </header>
 
   <div class="profile-wrap">
     <div class="profile-header">
+      <div class="profile-cover">
+        <span class="cover-ribbon">★ Featured tutor</span>
+      </div>
       <div class="photo-frame">
         
         <img class="avatar" src="https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&amp;sz=w1000" alt="Ahmed Mohamed" loading="lazy">
@@ -668,6 +790,11 @@ section.profile-section h2::before {
       <p class="title">English &amp; Islamic English Tutor</p>
       
       <p class="summary">I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.</p>
+      
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-value">5</div><div class="stat-label">Years experience</div></div><div class="stat-card"><div class="stat-value">7</div><div class="stat-label">Specializations</div></div><div class="stat-card"><div class="stat-value">2</div><div class="stat-label">Languages</div></div><div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Certificates</div></div>
+      </div>
+      <a class="cta-button" href="https://wa.me/201012345678" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16.5l1.1-3.2A6.8 6.8 0 1 1 8 15.7z"/><path d="M7.3 7.8c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .5.4.2.5.6 1.5.6 1.6.1.1.1.3 0 .4-.1.2-.2.3-.3.4-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1.2-.2.6-.7.8-1 .2-.2.4-.2.6-.1l1.5.7c.2.1.4.2.4.3.1.2.1 1-.3 1.5-.4.6-1.4 1.1-2.4 1-.9-.1-2.9-.9-4.4-2.4-1.8-1.8-2.5-3.4-2.6-3.7-.1-.2-.7-1.1-.7-2 0-1 .5-1.4.7-1.7z"/></svg><span>Message on WhatsApp</span></a>
     </div>
 
     
@@ -744,6 +871,7 @@ section.profile-section h2::before {
     <div class="cert-grid" data-cert-section>
       
       <button type="button" class="cert-card" data-cert-card data-name="TESOL Certificate" data-embed-url="https://drive.google.com/file/d/1bMWw7VYXqFH-m8dBF08dC2Wi0nbOtvDK/preview" data-embed-kind="file">
+        <span class="cert-icon"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg></span>
         <h3>TESOL Certificate</h3>
         <p class="org">International TESOL Institute</p>
         <p class="date">6/11/2024</p>
@@ -751,6 +879,7 @@ section.profile-section h2::before {
       </button>
     
       <button type="button" class="cert-card" data-cert-card data-name="English Language Teaching Certificate" data-embed-url="https://drive.google.com/file/d/1WYPoAOG4ag3ldcyFMkJYt0KYNDHBSqkT/preview" data-embed-kind="file">
+        <span class="cert-icon"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg></span>
         <h3>English Language Teaching Certificate</h3>
         <p class="org">ABC Training Academy</p>
         <p class="date">6/12/2023</p>
@@ -758,6 +887,7 @@ section.profile-section h2::before {
       </button>
     
       <button type="button" class="cert-card" data-cert-card data-name="Functional Safety" data-embed-url="https://drive.google.com/file/d/1N3SR9O9I9BTJxxG8BwOKMCnLsRrsoaot/preview" data-embed-kind="file">
+        <span class="cert-icon"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg></span>
         <h3>Functional Safety</h3>
         <p class="org">safeTTy</p>
         <p class="date">9/9/2026</p>
@@ -872,6 +1002,44 @@ section.profile-section h2::before {
   window.addEventListener('orientationchange', fit);
 })();
 
+// ---------- Language toggle (Arabic translation) ----------
+// Drives Google's Website Translator (loaded invisibly — see the widget
+// markup and the CSS that hides its own UI) by setting the cookie it reads
+// on load, then reloading. The cookie is set with path=/ so the chosen
+// language carries across every page of the site, not just this one.
+(function initLangSwitch() {
+  const buttons = document.querySelectorAll('[data-lang-btn]');
+  if (!buttons.length) return;
+
+  function currentLang() {
+    const m = document.cookie.match(/googtrans=\/en\/(\w+)/);
+    return m ? m[1] : 'en';
+  }
+
+  const active = currentLang();
+  buttons.forEach((btn) => {
+    btn.classList.toggle('active', btn.dataset.langBtn === active);
+    btn.addEventListener('click', () => {
+      const lang = btn.dataset.langBtn;
+      if (lang === active) return;
+      if (lang === 'en') {
+        document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
+      } else {
+        document.cookie = `googtrans=/en/${lang}; path=/`;
+      }
+      location.reload();
+    });
+  });
+})();
+
 </script>
+  
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

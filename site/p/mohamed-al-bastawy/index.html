@@ -10,11 +10,19 @@
   <header class="topbar">
     <div class="container">
       <a class="brand" href="../../">Profile Directory</a>
+      
+    <div class="lang-switch" data-lang-switch>
+      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
+      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
+    </div>
     </div>
   </header>
 
   <div class="profile-wrap">
     <div class="profile-header">
+      <div class="profile-cover">
+        <span class="cover-ribbon">★ Featured tutor</span>
+      </div>
       <div class="photo-frame">
         
         <img class="avatar" src="https://drive.google.com/thumbnail?id=1Hay1XwGpxForqv0ZDjUcQql1BhEfP3Ao&amp;sz=w1000" alt="Mohamed Ahmed Hassan" loading="lazy">
@@ -23,6 +31,11 @@
       <p class="title">Qur'an and Islamic Studies Teacher</p>
       
       <p class="summary">I am an experienced Qur’an and Islamic Studies teacher with over two years of experience teaching non-Arabic-speaking Muslims in English. I have worked with several well-established academies, including Makkah Academy, Super Muslim Academy, Ruwaq Al-Quran Academy, Bedaya Academy, and Noor Al-Quran Academy, in addition to providing private lessons. I specialize in teaching Qur’an, Tajweed, Tafsir, and Islamic Studies. My lessons are engaging, structured, and tailored to each student’s level, helping them learn confidently while developing a strong connection with their faith.</p>
+      
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-value">2</div><div class="stat-label">Years experience</div></div><div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Specializations</div></div><div class="stat-card"><div class="stat-value">2</div><div class="stat-label">Languages</div></div>
+      </div>
+      <a class="cta-button" href="https://wa.me/0112583833" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16.5l1.1-3.2A6.8 6.8 0 1 1 8 15.7z"/><path d="M7.3 7.8c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .5.4.2.5.6 1.5.6 1.6.1.1.1.3 0 .4-.1.2-.2.3-.3.4-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1.2-.2.6-.7.8-1 .2-.2.4-.2.6-.1l1.5.7c.2.1.4.2.4.3.1.2.1 1-.3 1.5-.4.6-1.4 1.1-2.4 1-.9-.1-2.9-.9-4.4-2.4-1.8-1.8-2.5-3.4-2.6-3.7-.1-.2-.7-1.1-.7-2 0-1 .5-1.4.7-1.7z"/></svg><span>Message on WhatsApp</span></a>
     </div>
 
     
@@ -99,5 +112,13 @@
 
   <footer class="site-footer">Mohamed Ahmed Hassan — Profile Directory</footer>
   <script src="../../assets/site.js"></script>
+  
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

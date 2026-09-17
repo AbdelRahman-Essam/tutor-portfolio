@@ -393,6 +393,32 @@ background. The directory and profile pages both stay on the same neutral
 paper (or, for the `dark` theme, the same neutral dark) regardless of which
 accent a given profile picked.
 
+**Profile header:** a gradient cover band (built from the profile's own
+`--accent`, so it's per-profile without any extra data) sits behind the
+circular photo, with a small ribbon badge in the corner for featured
+profiles. Below the summary, a row of quick-fact stat cards (years of
+experience, specialization/expertise count, language count, certificate
+count) is generated straight from data already in the sheet — nothing
+fabricated, and a fact is simply omitted if that field is empty. A single
+"Get in touch" button surfaces the best available contact method
+(WhatsApp → email → Telegram → phone, first one present) right under the
+summary; the full contact list still lives in the Contact section further
+down. Certificate cards get a small icon distinguishing an uploaded
+file/PDF from an image.
+
+**Arabic translation.** An EN / العربية toggle sits in the topbar of every
+page (`langSwitch()` in build-site.js, wired up in `initLangSwitch()` in
+site.js). It's backed by Google's own Website Translator widget, loaded
+invisibly (its default UI is hidden via CSS) — the toggle just sets the
+`googtrans` cookie Google's script reads and reloads the page, so the
+chosen language persists across every page on the site without us
+maintaining a second, hand-translated copy of every profile. Once Arabic is
+active, Google adds `translated-rtl` to `<html>`; a few CSS rules under
+that selector flip the handful of physical left/right values in the
+layout (the featured-card border, the cover ribbon, summary alignment) —
+flexbox layouts elsewhere mirror themselves automatically once
+`direction: rtl` is set, so most of the page needs no extra rule at all.
+
 ### Photo cropping
 Profile photos are shown in a circular frame, cropped with `object-fit:
 cover`. A plain centred crop cuts off faces in a lot of real portrait

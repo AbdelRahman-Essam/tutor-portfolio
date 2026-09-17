@@ -46,6 +46,31 @@ function themeAttrs(rawTheme) {
   return ` data-theme="${esc(slug)}"${style}`;
 }
 
+// Small EN/Arabic switcher in the topbar. It drives Google's Website
+// Translator behind the scenes (see the widget + initLangSwitch() in
+// site.js) rather than us maintaining separate translated copies of every
+// profile — the actual toggle logic lives in site.js since it just flips a
+// cookie and reloads.
+function langSwitch() {
+  return `
+    <div class="lang-switch" data-lang-switch>
+      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
+      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
+    </div>`;
+}
+
+// Loads Google's Website Translator engine (invisibly — see the CSS that
+// hides its default widget UI) so the EN/AR buttons above have something to
+// drive. Included once per page, right before the closing </body>.
+const TRANSLATE_WIDGET = `
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>`;
+
 // ---------------------------------------------------------------------------
 // Directory page
 // ---------------------------------------------------------------------------
@@ -84,6 +109,7 @@ function renderDirectory(directory) {
   <header class="topbar">
     <div class="container">
       <a class="brand" href="./">Profile Directory</a>
+      ${langSwitch()}
     </div>
   </header>
 
@@ -108,6 +134,7 @@ function renderDirectory(directory) {
 
   <footer class="site-footer">Generated ${esc(directory.generatedAt)}</footer>
   <script src="assets/site.js"></script>
+  ${TRANSLATE_WIDGET}
 </body>
 </html>`;
 }
@@ -126,6 +153,11 @@ const CONTACT_ICONS = {
   linkedin: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M7 8.5v5.5M7 6.3v.1M10.3 14v-3.2c0-1.2.7-1.8 1.7-1.8 1 0 1.5.6 1.5 1.8V14"/></svg>`,
   github: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7.5 16.5c-3 1-3.5-1.5-4.5-2m9 4v-2.8c0-.8-.1-1.1-.5-1.5 2-.2 4-1 4-4.4 0-.9-.3-1.7-.9-2.3.3-.8.2-1.7-.1-2.4 0 0-.7-.2-2.4.9a8 8 0 0 0-4.2 0C6.2 4 5.5 4.2 5.5 4.2c-.3.7-.4 1.6-.1 2.4-.6.6-.9 1.4-.9 2.3 0 3.4 2 4.2 4 4.4-.3.3-.4.7-.5 1.2V18"/></svg>`,
   website: `<svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="10" r="7"/><path d="M3 10h14M10 3c1.8 2 1.8 12 0 14M10 3c-1.8 2-1.8 12 0 14"/></svg>`,
+};
+
+const CERT_ICONS = {
+  file: `<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg>`,
+  image: `<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="14" height="12" rx="1.5"/><circle cx="7.3" cy="8.3" r="1.2"/><path d="M4 15l4-4 3 3 3-3.5 3 3.5"/></svg>`,
 };
 
 function contactChips(contacts) {
@@ -231,6 +263,7 @@ function certificatesSection(certificates) {
     const kind = c.file && c.file.provider === 'drive' ? 'file' : 'image';
     return `
       <button type="button" class="cert-card" ${hasFile ? `data-cert-card data-name="${esc(c.name)}" data-embed-url="${esc(c.file.embedUrl)}" data-embed-kind="${kind}"` : 'disabled'}>
+        <span class="cert-icon">${kind === 'file' ? CERT_ICONS.file : CERT_ICONS.image}</span>
         <h3>${esc(c.name)}</h3>
         ${c.organization ? `<p class="org">${esc(c.organization)}</p>` : ''}
         ${c.date ? `<p class="date">${esc(c.date)}</p>` : ''}
@@ -277,6 +310,43 @@ function metaLine(t) {
   const bits = [t.personal.specialization, t.personal.location].filter(Boolean);
   if (!bits.length) return '';
   return `<p class="meta-line">${bits.map((b) => `<span>${esc(b)}</span>`).join('')}</p>`;
+}
+
+// Real numbers pulled straight from the profile's own data — no scores or
+// metrics that aren't actually in the sheet.
+function quickFacts(t) {
+  const isPro = t.kind === 'professional';
+  const expYears = isPro ? (t.professional && t.professional.experienceYears) : (t.teaching && t.teaching.experienceYears);
+  const specList = isPro ? (t.professional && t.professional.expertise) : (t.teaching && t.teaching.specializations);
+
+  const facts = [];
+  if (expYears) facts.push([expYears, Number(expYears) === 1 ? 'Year experience' : 'Years experience']);
+  if (specList && specList.length) facts.push([specList.length, isPro ? 'Areas of expertise' : 'Specializations']);
+  if (t.languages && t.languages.length) facts.push([t.languages.length, t.languages.length === 1 ? 'Language' : 'Languages']);
+  if (t.certificates && t.certificates.length) facts.push([t.certificates.length, t.certificates.length === 1 ? 'Certificate' : 'Certificates']);
+
+  if (!facts.length) return '';
+  return `
+      <div class="stat-row">
+        ${facts.slice(0, 4).map(([value, label]) => `<div class="stat-card"><div class="stat-value">${esc(value)}</div><div class="stat-label">${esc(label)}</div></div>`).join('')}
+      </div>`;
+}
+
+// The single most direct way to reach this person, surfaced as one
+// prominent button up top — the full list of every contact method they
+// gave still lives in the Contact section further down the page.
+function primaryCta(contacts) {
+  if (!contacts) return '';
+  const order = [
+    ['whatsapp', (v) => `https://wa.me/${v.replace(/[^\d]/g, '')}`, 'Message on WhatsApp'],
+    ['email', (v) => `mailto:${v}`, 'Get in touch'],
+    ['telegram', (v) => `https://t.me/${v.replace(/^@/, '')}`, 'Message on Telegram'],
+    ['phone', (v) => `tel:${v}`, 'Call'],
+  ];
+  const hit = order.find(([key]) => contacts[key]);
+  if (!hit) return '';
+  const [key, hrefFn, label] = hit;
+  return `<a class="cta-button" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key] || ''}<span>${esc(label)}</span></a>`;
 }
 
 function pillSection(heading, items) {
@@ -360,11 +430,15 @@ function renderProfile(t) {
   <header class="topbar">
     <div class="container">
       <a class="brand" href="../../">Profile Directory</a>
+      ${langSwitch()}
     </div>
   </header>
 
   <div class="profile-wrap">
     <div class="profile-header">
+      <div class="profile-cover">
+        ${t.featured ? `<span class="cover-ribbon">★ Featured ${t.kind === 'professional' ? 'professional' : 'tutor'}</span>` : ''}
+      </div>
       <div class="photo-frame">
         ${CORNER_ORNAMENT_SVG}
         ${avatarHtml(t.personal.photo, t.personal.name, 'avatar')}
@@ -373,6 +447,8 @@ function renderProfile(t) {
       ${t.personal.title ? `<p class="title">${esc(t.personal.title)}</p>` : ''}
       ${metaLine(t)}
       ${t.personal.summary ? `<p class="summary">${esc(t.personal.summary)}</p>` : ''}
+      ${quickFacts(t)}
+      ${primaryCta(t.contacts)}
     </div>
 
     ${t.kind === 'professional' ? `
@@ -399,6 +475,7 @@ function renderProfile(t) {
 
   <footer class="site-footer">${esc(t.personal.name)} — Profile Directory</footer>
   <script src="../../assets/site.js"></script>
+  ${TRANSLATE_WIDGET}
 </body>
 </html>`;
 }

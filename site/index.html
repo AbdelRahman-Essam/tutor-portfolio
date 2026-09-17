@@ -10,6 +10,11 @@
   <header class="topbar">
     <div class="container">
       <a class="brand" href="./">Profile Directory</a>
+      
+    <div class="lang-switch" data-lang-switch>
+      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
+      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
+    </div>
     </div>
   </header>
 
@@ -76,7 +81,15 @@
     </div>
   </div>
 
-  <footer class="site-footer">Generated 2026-09-16T21:35:33.964Z</footer>
+  <footer class="site-footer">Generated 2026-09-17T06:50:17.757Z</footer>
   <script src="assets/site.js"></script>
+  
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

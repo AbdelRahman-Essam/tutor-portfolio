@@ -10,11 +10,19 @@
   <header class="topbar">
     <div class="container">
       <a class="brand" href="../../">Profile Directory</a>
+      
+    <div class="lang-switch" data-lang-switch>
+      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
+      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
+    </div>
     </div>
   </header>
 
   <div class="profile-wrap">
     <div class="profile-header">
+      <div class="profile-cover">
+        <span class="cover-ribbon">★ Featured tutor</span>
+      </div>
       <div class="photo-frame">
         
         <img class="avatar" src="https://drive.google.com/thumbnail?id=1jW88T_hpzjdktM-CvSL3Dw5xRgtQ23Ih&amp;sz=w1000" alt="Ahmed Mohamed" loading="lazy">
@@ -23,6 +31,11 @@
       <p class="title">English &amp; Islamic English Tutor</p>
       
       <p class="summary">I am an English tutor with five years of experience helping children, teenagers, and adults improve their English communication skills. I focus on practical speaking, vocabulary, and confidence-building activities. I also enjoy teaching English through Islamic topics and everyday situations.</p>
+      
+      <div class="stat-row">
+        <div class="stat-card"><div class="stat-value">5</div><div class="stat-label">Years experience</div></div><div class="stat-card"><div class="stat-value">7</div><div class="stat-label">Specializations</div></div><div class="stat-card"><div class="stat-value">2</div><div class="stat-label">Languages</div></div><div class="stat-card"><div class="stat-value">3</div><div class="stat-label">Certificates</div></div>
+      </div>
+      <a class="cta-button" href="https://wa.me/201012345678" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16.5l1.1-3.2A6.8 6.8 0 1 1 8 15.7z"/><path d="M7.3 7.8c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .5.4.2.5.6 1.5.6 1.6.1.1.1.3 0 .4-.1.2-.2.3-.3.4-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1.2-.2.6-.7.8-1 .2-.2.4-.2.6-.1l1.5.7c.2.1.4.2.4.3.1.2.1 1-.3 1.5-.4.6-1.4 1.1-2.4 1-.9-.1-2.9-.9-4.4-2.4-1.8-1.8-2.5-3.4-2.6-3.7-.1-.2-.7-1.1-.7-2 0-1 .5-1.4.7-1.7z"/></svg><span>Message on WhatsApp</span></a>
     </div>
 
     
@@ -99,6 +112,7 @@
     <div class="cert-grid" data-cert-section>
       
       <button type="button" class="cert-card" data-cert-card data-name="TESOL Certificate" data-embed-url="https://drive.google.com/file/d/1bMWw7VYXqFH-m8dBF08dC2Wi0nbOtvDK/preview" data-embed-kind="file">
+        <span class="cert-icon"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg></span>
         <h3>TESOL Certificate</h3>
         <p class="org">International TESOL Institute</p>
         <p class="date">6/11/2024</p>
@@ -106,6 +120,7 @@
       </button>
     
       <button type="button" class="cert-card" data-cert-card data-name="English Language Teaching Certificate" data-embed-url="https://drive.google.com/file/d/1WYPoAOG4ag3ldcyFMkJYt0KYNDHBSqkT/preview" data-embed-kind="file">
+        <span class="cert-icon"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg></span>
         <h3>English Language Teaching Certificate</h3>
         <p class="org">ABC Training Academy</p>
         <p class="date">6/12/2023</p>
@@ -113,6 +128,7 @@
       </button>
     
       <button type="button" class="cert-card" data-cert-card data-name="Functional Safety" data-embed-url="https://drive.google.com/file/d/1N3SR9O9I9BTJxxG8BwOKMCnLsRrsoaot/preview" data-embed-kind="file">
+        <span class="cert-icon"><svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 2.5h6l3 3v12h-9z"/><path d="M11.5 2.5v3h3"/></svg></span>
         <h3>Functional Safety</h3>
         <p class="org">safeTTy</p>
         <p class="date">9/9/2026</p>
@@ -141,5 +157,13 @@
 
   <footer class="site-footer">Ahmed Mohamed — Profile Directory</footer>
   <script src="../../assets/site.js"></script>
+  
+  <div id="google_translate_element"></div>
+  <script>
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
+    }
+  </script>
+  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>
