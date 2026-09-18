@@ -442,9 +442,10 @@ site/p/<key>/index.html            (both languages baked in)
 
 `scripts/translate.js` walks a fixed, explicit list of fields per profile
 (`TRANSLATABLE_PATHS`) — summaries, descriptions, category tags like
-"Beginner" or "Business English" — and asks the Claude API to translate
-whichever of those strings aren't already in `data/i18n/<key>.json`, in
-batches. Deliberately **not** translated: names, organizations/
+"Beginner" or "Business English" — and translates whichever of those
+strings aren't already in `data/i18n/<key>.json` via MyMemory
+(mymemory.translated.net), a free translation API with no account or key
+required. Deliberately **not** translated: names, organizations/
 institutions, contact handles, dates, IDs, theme words — those are proper
 nouns/identifiers, and machine translation tends to mangle them, so they're
 left exactly as entered on both language versions of the page.
@@ -452,16 +453,26 @@ left exactly as entered on both language versions of the page.
 Each `data/i18n/<key>.json` is a plain `{"English text": "Arabic text"}`
 object — read it, hand-edit any line that needs a better translation, and
 `scripts/translate.js` will leave your edit alone (it only fills in
-strings that are missing, never overwrites an existing entry). Re-running
-it after adding new content to a profile only costs API calls for the new
+strings that are missing, never overwrites an existing entry). Worth
+checking by hand at least once: MyMemory is decent but not perfect,
+especially on short category tags translated without surrounding context
+("Elementary" as a teaching level vs. a school, for instance). Re-running
+the script after adding new content to a profile only translates the new
 strings, not the whole profile again.
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
 node scripts/translate.js                 # every profile
 node scripts/translate.js ahmed-mohamed   # just one
 node scripts/build-site.js                # bake the (updated) translations into the site
 ```
+
+MyMemory's anonymous free tier is capped around 5,000 words/day per IP;
+`export MYMEMORY_EMAIL=you@example.com` (a free registration, not a paid
+key: https://mymemory.translated.net/doc/keygen.php) raises that to
+roughly 50,000 words/day if a handful of profiles ever isn't enough. A
+failed string (network hiccup, quota hit) is skipped with a warning and
+retried the next time the script runs — it never blocks the rest of the
+batch.
 
 If a string has no cached translation yet (a brand-new profile before its
 first `translate.js` run, or a string `translate.js` doesn't cover),
@@ -621,7 +632,7 @@ tutor-portfolio/
 │   │   │                          unified profile shape; profile assembly, pruning
 │   │   └── i18n.js             ← merges data/i18n/*.json into one lookup table
 │   ├── sync.js                 ← reads data/raw/*.csv → data/profiles/*.json + data/index.json
-│   ├── translate.js            ← calls the Claude API to fill in data/i18n/<key>.json (§6a)
+│   ├── translate.js            ← free MyMemory-based translation to fill in data/i18n/<key>.json (§6a)
 │   ├── build-site.js           ← JSON (+ i18n) → static HTML site; exports buildSite()/
 │   │                              buildOneProfile() so server/ can reuse the same renderer
 │   ├── make-fixture.js         ← (dev only) regenerates the tutor sample CSV
@@ -648,12 +659,11 @@ tutor-portfolio/
 #    Save them into data/raw/ (any filenames, any number of files)
 
 node scripts/sync.js          # data/raw/*.csv → data/profiles/*.json + data/index.json
-export ANTHROPIC_API_KEY=sk-ant-...
-node scripts/translate.js     # data/profiles/*.json → data/i18n/*.json (cached; skips what's already translated)
+node scripts/translate.js     # data/profiles/*.json → data/i18n/*.json (free, cached; skips what's already translated)
 node scripts/build-site.js    # JSON (+ i18n) → site/index.html + site/p/<key>/index.html
 ```
 Re-run these any time any sheet changes and a new export is dropped in
-(`translate.js` is cheap to re-run — it only calls the API for strings it
+(`translate.js` is cheap to re-run — it only translates strings it
 hasn't seen before). `sync.js` prints a per-file summary (schema detected,
 rows read, profiles built) plus every warning, so a bad row or a broken
 link is visible immediately rather than silently producing an incomplete
@@ -661,7 +671,7 @@ page.
 
 On the actual server: `./deploy/update-site.sh /path/to/new-export.csv`
 copies the file into `data/raw/`, re-runs sync + build (not translate —
-run that separately when you have new content and an API key handy), and
+run that separately when you have new content to translate), and
 rsyncs the result into nginx's webroot in one step.
 
 To let people log in and edit their own profile afterward, see

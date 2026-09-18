@@ -9,21 +9,36 @@
 // descriptions, category tags like "Beginner"/"Business English" — not
 // proper nouns like names, institutions, or contact handles, which
 // shouldn't be machine-translated), finds any text with no cached
-// translation yet, and asks Claude for Arabic translations in batches. The
-// result is merged into data/i18n/<profileKey>.json — a plain, human-
-// editable {"English text": "Arabic text"} dictionary. Re-running this
-// script is cheap and safe: only strings actually missing from the cache
-// are ever sent to the API, and hand edits to an i18n file are preserved
-// (never overwritten) as long as the English text still matches.
+// translation yet, and translates it into Arabic via MyMemory
+// (mymemory.translated.net) — a free translation API, no account or API
+// key required. The result is merged into data/i18n/<profileKey>.json — a
+// plain, human-editable {"English text": "Arabic text"} dictionary.
+// Re-running this script is cheap and safe: only strings actually missing
+// from the cache are ever sent out for translation, and hand edits to an
+// i18n file are preserved (never overwritten) as long as the English text
+// still matches.
 //
 // Usage:
-//   export ANTHROPIC_API_KEY=sk-ant-...
 //   node scripts/translate.js              # translate every profile
 //   node scripts/translate.js ahmed-mohamed # just one profile
 //
+// MyMemory's anonymous free tier caps out around 5,000 words/day per IP.
+// If you register a free email with them, passing it via MYMEMORY_EMAIL
+// raises that to ~50,000 words/day (https://mymemory.translated.net/doc/keygen.php
+// — no signup fee, just an email to reduce their abuse). Not required for
+// a handful of profiles.
+//
+//   export MYMEMORY_EMAIL=you@example.com   # optional, raises the daily cap
+//
 // Requires Node 18+ (built-in fetch). Run this, then scripts/build-site.js
 // (or let server/index.js's save handler call buildOneProfile — it reads
-// whatever is already cached; it does not call the API itself).
+// whatever is already cached; it does not call MyMemory itself).
+//
+// Since anyone can read/edit data/i18n/<key>.json directly, a translation
+// this script gets wrong (MyMemory is decent but not perfect, especially
+// on short category tags out of context) is always fixable by hand —
+// this script will never overwrite an existing entry, only add missing
+// ones.
 
 const fs = require('fs');
 const path = require('path');
@@ -32,9 +47,10 @@ const ROOT = path.join(__dirname, '..');
 const PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
 const I18N_DIR = path.join(ROOT, 'data', 'i18n');
 
-const API_URL = 'https://api.anthropic.com/v1/messages';
-const MODEL = 'claude-sonnet-4-6';
-const BATCH_SIZE = 40;
+const API_URL = 'https://api.mymemory.translated.net/get';
+const MAX_CHUNK_CHARS = 480; // MyMemory rejects requests over ~500 chars; stay well under
+const REQUEST_DELAY_MS = 350; // be polite to a free, shared service
+const MAX_RETRIES = 3;
 
 // Dotted paths into a profile object identifying exactly which fields get
 // machine-translated. `foo[]` means "for every item in this array"; a
@@ -100,54 +116,78 @@ function collectStrings(profile) {
   return out;
 }
 
-function chunk(arr, size) {
-  const out = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
-  return out;
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function translateBatch(strings) {
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) {
-    throw new Error('ANTHROPIC_API_KEY is not set. Export it before running scripts/translate.js.');
+// MyMemory only takes one string per request and caps request length, so a
+// long summary/description gets split on sentence boundaries into chunks
+// under the limit, translated one at a time, and rejoined. Most fields
+// (tags, titles, short descriptions) are a single "chunk" in practice.
+function splitIntoChunks(text, maxLen) {
+  if (text.length <= maxLen) return [text];
+  const sentences = text.match(/[^.!?]+[.!?]+(\s+|$)|[^.!?]+$/g) || [text];
+  const chunks = [];
+  let current = '';
+  for (const sentence of sentences) {
+    if (current && (current + sentence).length > maxLen) {
+      chunks.push(current.trim());
+      current = '';
+    }
+    if (sentence.length > maxLen) {
+      // A single "sentence" is itself too long (no punctuation to split
+      // on) — fall back to a hard cut so we never send an over-limit
+      // request; rare in practice for this site's content.
+      if (current) { chunks.push(current.trim()); current = ''; }
+      for (let i = 0; i < sentence.length; i += maxLen) chunks.push(sentence.slice(i, i + maxLen).trim());
+    } else {
+      current += sentence;
+    }
   }
+  if (current.trim()) chunks.push(current.trim());
+  return chunks.filter(Boolean);
+}
 
-  const numbered = strings.map((s, i) => `${i + 1}. ${s}`).join('\n');
-  const prompt = `Translate each numbered line below from English into natural, professional Modern Standard Arabic. These are snippets from tutor/professional portfolio pages (summaries, skill tags, experience descriptions). Keep each translation roughly the same register (a short tag stays a short tag, a full sentence stays a full sentence). Respond with ONLY a JSON object mapping each line's exact original English text to its Arabic translation - no numbering in the output, no markdown code fences, no extra commentary.\n\n${numbered}`;
+async function translateChunk(text, attempt = 1) {
+  const email = process.env.MYMEMORY_EMAIL;
+  const params = new URLSearchParams({ q: text, langpair: 'en|ar' });
+  if (email) params.set('de', email);
 
-  const res = await fetch(API_URL, {
-    method: 'POST',
-    headers: {
-      'content-type': 'application/json',
-      'x-api-key': apiKey,
-      'anthropic-version': '2023-06-01',
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      max_tokens: 4096,
-      messages: [{ role: 'user', content: prompt }],
-    }),
-  });
-
+  const res = await fetch(`${API_URL}?${params.toString()}`);
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Anthropic API error ${res.status}: ${body.slice(0, 500)}`);
+    throw new Error(`MyMemory HTTP error ${res.status}`);
   }
-
   const data = await res.json();
-  const textBlock = (data.content || []).find((b) => b.type === 'text');
-  if (!textBlock) throw new Error('No text content in API response.');
 
-  const cleaned = textBlock.text.trim()
-    .replace(/^```(json)?/i, '')
-    .replace(/```$/, '')
-    .trim();
-
-  try {
-    return JSON.parse(cleaned);
-  } catch (e) {
-    throw new Error(`Could not parse translation response as JSON: ${e.message}\nRaw response: ${cleaned.slice(0, 500)}`);
+  // MyMemory signals problems (quota exceeded, malformed request) via
+  // responseStatus/responseDetails rather than always using an HTTP error
+  // status, so check both.
+  const status = data.responseStatus;
+  if (status && Number(status) !== 200) {
+    const detail = String(data.responseDetails || '');
+    if (/quota|limit/i.test(detail) && attempt < MAX_RETRIES) {
+      // Free-tier daily quota errors won't clear on retry within the same
+      // run, but a transient rate-limit blip might — back off and try a
+      // couple more times before giving up on this string.
+      await sleep(2000 * attempt);
+      return translateChunk(text, attempt + 1);
+    }
+    throw new Error(`MyMemory error: ${detail || status}`);
   }
+
+  const translated = data.responseData && data.responseData.translatedText;
+  if (!translated) throw new Error('MyMemory returned no translated text.');
+  return translated;
+}
+
+async function translateString(text) {
+  const chunks = splitIntoChunks(text, MAX_CHUNK_CHARS);
+  const translatedChunks = [];
+  for (const chunk of chunks) {
+    translatedChunks.push(await translateChunk(chunk));
+    if (chunks.length > 1) await sleep(REQUEST_DELAY_MS);
+  }
+  return translatedChunks.join(' ');
 }
 
 async function translateProfile(file) {
@@ -161,26 +201,26 @@ async function translateProfile(file) {
 
   if (!missing.length) {
     console.log(`${key}: up to date (${Object.keys(existing).length} cached string(s))`);
-    return 0;
+    return { translated: 0, failed: 0 };
   }
 
   console.log(`${key}: translating ${missing.length} new string(s)...`);
   const merged = { ...existing };
-  for (const batch of chunk(missing, BATCH_SIZE)) {
-    const translated = await translateBatch(batch);
-    for (const s of batch) {
-      if (translated[s]) {
-        merged[s] = translated[s];
-      } else {
-        console.warn(`  ! no translation returned for: "${s.slice(0, 60)}${s.length > 60 ? '…' : ''}"`);
-      }
+  let failed = 0;
+  for (const s of missing) {
+    try {
+      merged[s] = await translateString(s);
+    } catch (e) {
+      failed++;
+      console.warn(`  ! failed to translate "${s.slice(0, 60)}${s.length > 60 ? '…' : ''}": ${e.message}`);
     }
+    await sleep(REQUEST_DELAY_MS);
   }
 
   fs.mkdirSync(I18N_DIR, { recursive: true });
   fs.writeFileSync(dictPath, JSON.stringify(merged, null, 2) + '\n');
-  console.log(`  saved -> data/i18n/${key}.json (${Object.keys(merged).length} total string(s))`);
-  return missing.length;
+  console.log(`  saved -> data/i18n/${key}.json (${Object.keys(merged).length} total string(s)${failed ? `, ${failed} failed this run` : ''})`);
+  return { translated: missing.length - failed, failed };
 }
 
 async function main() {
@@ -200,10 +240,16 @@ async function main() {
   }
 
   let totalNew = 0;
+  let totalFailed = 0;
   for (const file of files) {
-    totalNew += await translateProfile(file);
+    const { translated, failed } = await translateProfile(file);
+    totalNew += translated;
+    totalFailed += failed;
   }
   console.log(`Done. ${totalNew} new string(s) translated across ${files.length} profile(s).`);
+  if (totalFailed) {
+    console.log(`${totalFailed} string(s) failed — re-run this script to retry just those (already-translated strings are skipped).`);
+  }
   if (totalNew > 0) {
     console.log('Run node scripts/build-site.js to bake the new translations into the site.');
   }
