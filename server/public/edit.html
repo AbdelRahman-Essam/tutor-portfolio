@@ -125,6 +125,25 @@
         <button type="submit" class="auth-submit" id="save-btn">Save changes</button>
       </div>
     </form>
+
+    <section class="edit-section" id="translations-section">
+      <h2>Arabic translations</h2>
+      <p class="hint">
+        This is what shows on your page when a visitor taps العربية. It's
+        separate from the English content above, so editing an English
+        field and saving doesn't touch these — and editing these doesn't
+        touch your English text. If you change an English field above,
+        come back here afterward: the new/changed text will appear below
+        with a blank translation to fill in.
+      </p>
+      <p id="translations-empty" class="hint" style="display:none;">
+        Nothing to translate yet — add some content above and save it first.
+      </p>
+      <div id="translations-rows"></div>
+      <div class="save-row">
+        <button type="button" class="auth-submit" id="save-translations-btn">Save translations</button>
+      </div>
+    </section>
   </div>
 
   <!-- Row templates for repeatable sections, cloned by edit.js -->
@@ -172,6 +191,13 @@
       <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>
       <div class="field"><label>New file link (optional)</label><input data-field="url" type="text" placeholder="Google Drive file URL"></div>
       <button type="button" class="remove-row-btn">Remove</button>
+    </div>
+  </template>
+
+  <template id="tpl-translation">
+    <div class="translation-row">
+      <div class="translation-en" data-en-text></div>
+      <textarea class="translation-ar" dir="rtl" rows="2" placeholder="Arabic translation…"></textarea>
     </div>
   </template>
 

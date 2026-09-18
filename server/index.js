@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser');
 const { COOKIE_NAME, COOKIE_OPTIONS, signSession, verifySession } = require('./lib/auth');
 const { findByUsername, verifyPassword } = require('./lib/users');
 const { loadProfile } = require('../scripts/build-site');
-const { updateProfile } = require('./lib/profile-store');
+const { updateProfile, getTranslations, saveTranslations } = require('./lib/profile-store');
 
 const ROOT = path.join(__dirname, '..');
 const SITE_DIR = path.join(ROOT, 'site');
@@ -101,6 +101,39 @@ app.put('/api/profile', requireAuth, sameOriginGuard, (req, res) => {
     res.status(err.status || 500).json({ error: err.message || 'Could not save profile.' });
   }
 });
+
+// The Arabic translation of this profile's own text — separate from
+// /api/profile because it edits data/i18n/<profileKey>.json (consumed by
+// build-site.js's bi(), see SYSTEM_OVERVIEW.md §6a), not
+// data/profiles/<profileKey>.json.
+app.get('/api/translations', requireAuth, (req, res) => {
+  try {
+    res.json({ translations: getTranslations(req.session.profileKey) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Could not load translations.' });
+  }
+});
+
+app.put('/api/translations', requireAuth, sameOriginGuard, (req, res) => {
+  try {
+    const translations = normalizeTranslationsBody(req.body);
+    res.json({ ok: true, translations: saveTranslations(req.session.profileKey, translations) });
+  } catch (err) {
+    res.status(err.status || 500).json({ error: err.message || 'Could not save translations.' });
+  }
+});
+
+// Accepts either {"English": "Arabic", ...} directly, or the
+// {translations: [{en, ar}, ...]} shape /api/translations GET returns (so
+// the edit page can just round-trip what it fetched).
+function normalizeTranslationsBody(body) {
+  if (Array.isArray(body && body.translations)) {
+    const map = {};
+    for (const { en, ar } of body.translations) map[en] = ar;
+    return map;
+  }
+  return body || {};
+}
 
 // ---------------------------------------------------------------------------
 // Static files: the login/edit pages, and the generated public site itself

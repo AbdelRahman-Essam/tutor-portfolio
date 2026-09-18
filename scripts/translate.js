@@ -5,7 +5,8 @@
 // Translator widget — see SYSTEM_OVERVIEW.md §6 for why that was dropped).
 //
 // For every profile in data/profiles/*.json, this walks the specific
-// free-text fields listed in TRANSLATABLE_PATHS below (summaries,
+// free-text fields listed in TRANSLATABLE_PATHS (in scripts/lib/i18n.js,
+// shared with the edit backend's Arabic translations panel — summaries,
 // descriptions, category tags like "Beginner"/"Business English" — not
 // proper nouns like names, institutions, or contact handles, which
 // shouldn't be machine-translated), finds any text with no cached
@@ -42,6 +43,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { collectStrings } = require('./lib/i18n');
 
 const ROOT = path.join(__dirname, '..');
 const PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
@@ -52,69 +54,10 @@ const MAX_CHUNK_CHARS = 480; // MyMemory rejects requests over ~500 chars; stay 
 const REQUEST_DELAY_MS = 350; // be polite to a free, shared service
 const MAX_RETRIES = 3;
 
-// Dotted paths into a profile object identifying exactly which fields get
-// machine-translated. `foo[]` means "for every item in this array"; a
-// trailing `.bar` after `foo[]` means "the `bar` field of each item" (for
-// arrays of objects); no trailing segment means "each item is itself the
-// string" (for arrays of plain strings). Anything not listed here — names,
-// organizations/institutions, contact handles, IDs, dates, theme words — is
-// left exactly as entered, on purpose: those are proper nouns/identifiers,
-// not sentences, and machine translation tends to mangle them.
-const TRANSLATABLE_PATHS = [
-  'personal.title',
-  'personal.summary',
-  'teaching.specializations[]',
-  'teaching.ageGroups[]',
-  'teaching.levels[]',
-  'teaching.format[]',
-  'teaching.availability',
-  'teaching.experienceDescription',
-  'teaching.philosophy',
-  'videos[].title',
-  'videos[].type',
-  'videos[].description',
-  'certificates[].description',
-  'professional.experienceSummary',
-  'professional.expertise[]',
-  'professional.workExperience[].position',
-  'professional.workExperience[].period',
-  'professional.workExperience[].description',
-  'professional.projects[].name',
-  'professional.projects[].description',
-  'professional.tools[]',
-  'education.qualification',
-  'education.additional[]',
-  'languages[].proficiency',
-];
-
-function collectPath(node, parts, out) {
-  if (node == null) return;
-  const [head, ...rest] = parts;
-  const isArray = head.endsWith('[]');
-  const key = isArray ? head.slice(0, -2) : head;
-  const value = node[key];
-  if (value == null) return;
-  if (isArray) {
-    if (!Array.isArray(value)) return;
-    for (const item of value) {
-      if (rest.length === 0) {
-        if (typeof item === 'string' && item.trim()) out.add(item.trim());
-      } else {
-        collectPath(item, rest, out);
-      }
-    }
-  } else if (rest.length === 0) {
-    if (typeof value === 'string' && value.trim()) out.add(value.trim());
-  } else {
-    collectPath(value, rest, out);
-  }
-}
-
-function collectStrings(profile) {
-  const out = new Set();
-  for (const p of TRANSLATABLE_PATHS) collectPath(profile, p.split('.'), out);
-  return out;
-}
+// The list of which fields get translated (TRANSLATABLE_PATHS) now lives in
+// scripts/lib/i18n.js, shared with server/lib/profile-store.js so the edit
+// backend's "Arabic translations" panel offers exactly the same fields this
+// script would translate.
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));

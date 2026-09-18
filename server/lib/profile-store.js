@@ -2,7 +2,8 @@
 const fs = require('fs');
 const path = require('path');
 const { normalizeMedia } = require('../../scripts/lib/parse');
-const { buildOneProfile, loadProfile: readProfile, loadIndex } = require('../../scripts/build-site');
+const { buildOneProfile, buildSite, loadProfile: readProfile, loadIndex } = require('../../scripts/build-site');
+const { collectStrings, loadStoredTranslations, saveProfileTranslations } = require('../../scripts/lib/i18n');
 
 const ROOT = path.join(__dirname, '..', '..');
 const PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
@@ -212,4 +213,50 @@ function patchIndexEntry(profile) {
   fs.writeFileSync(DATA_INDEX, JSON.stringify(directory, null, 2) + '\n');
 }
 
-module.exports = { updateProfile };
+// Every translatable English string currently in this profile (see
+// TRANSLATABLE_PATHS in scripts/lib/i18n.js — the same list
+// scripts/translate.js uses), paired with whatever Arabic translation is
+// currently stored for it, if any. Used to populate the edit page's
+// "Arabic translations" panel.
+function getTranslations(profileKey) {
+  const profile = readProfile(profileKey);
+  if (!profile) {
+    const err = new Error(`No profile found for "${profileKey}".`);
+    err.status = 404;
+    throw err;
+  }
+  const stored = loadStoredTranslations();
+  return collectStrings(profile).map((en) => ({ en, ar: stored[en] || '' }));
+}
+
+// Saves a logged-in user's own Arabic translation edits. `updates` is an
+// {english: arabic} map — typically the whole set from the translations
+// panel, though only entries for strings that still exist in the caller's
+// profile are written, so a stray/outdated key can't be used to plant an
+// unrelated dictionary entry. Note this writes into the SAME global
+// dictionary scripts/translate.js and every profile's page reads from
+// (see loadDictionary() in scripts/lib/i18n.js): if two profiles happen to
+// share an identical English string (a common tag like "Beginner", say),
+// editing its translation here updates it everywhere that exact string is
+// used, not just on this profile's page. Fine for shared, generic tags;
+// worth knowing if that's ever surprising.
+function saveTranslations(profileKey, updates) {
+  const profile = readProfile(profileKey);
+  if (!profile) {
+    const err = new Error(`No profile found for "${profileKey}".`);
+    err.status = 404;
+    throw err;
+  }
+  const allowed = new Set(collectStrings(profile));
+  const filtered = {};
+  for (const [en, ar] of Object.entries(updates || {})) {
+    if (allowed.has(en)) filtered[en] = ar;
+  }
+  saveProfileTranslations(profileKey, filtered);
+  // A saved string can affect other profiles' pages too (see note above),
+  // so rebuild everything rather than just this one profile.
+  buildSite();
+  return getTranslations(profileKey);
+}
+
+module.exports = { updateProfile, getTranslations, saveTranslations };

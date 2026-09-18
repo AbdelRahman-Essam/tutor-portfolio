@@ -112,6 +112,57 @@
     document.getElementById('specialization-field').style.display = kind === 'professional' ? '' : 'none';
   }
 
+  // ---- Arabic translations panel ----
+  function fillTranslations(translations) {
+    const container = document.getElementById('translations-rows');
+    const emptyMsg = document.getElementById('translations-empty');
+    const template = document.getElementById('tpl-translation');
+    container.innerHTML = '';
+    emptyMsg.style.display = translations.length ? 'none' : '';
+    translations.forEach(({ en, ar }) => {
+      const node = template.content.firstElementChild.cloneNode(true);
+      node.querySelector('[data-en-text]').textContent = en;
+      node.querySelector('.translation-ar').value = ar || '';
+      node.querySelector('.translation-ar').dataset.en = en;
+      container.appendChild(node);
+    });
+  }
+
+  async function loadTranslations() {
+    const res = await fetch('/api/translations');
+    if (!res.ok) return; // non-fatal — the rest of the page still works
+    const data = await res.json();
+    fillTranslations(data.translations || []);
+  }
+
+  document.getElementById('save-translations-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-translations-btn');
+    btn.disabled = true;
+    banner.style.display = 'none';
+    const translations = Array.from(document.querySelectorAll('#translations-rows .translation-ar')).map((el) => ({
+      en: el.dataset.en,
+      ar: el.value.trim(),
+    }));
+    try {
+      const res = await fetch('/api/translations', {
+        method: 'PUT',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ translations }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showBanner('error', data.error || 'Could not save translations.');
+        return;
+      }
+      showBanner('ok', 'Translations saved.');
+      fillTranslations(data.translations);
+    } catch (err) {
+      showBanner('error', 'Network error — please try again.');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
   // ---- load ----
   async function load() {
     const meRes = await fetch('/api/me');
@@ -136,6 +187,7 @@
     applyKindVisibility(profile.kind === 'professional' ? 'professional' : 'tutor');
     fillSimpleFields(profile);
     fillRepeaters(profile);
+    await loadTranslations();
   }
 
   // ---- save ----
@@ -170,9 +222,12 @@
         showBanner('error', data.error || 'Could not save changes.');
         return;
       }
-      let msg = 'Saved. Your live page has been updated.';
+      let msg = 'New data saved. Redirecting to your profile page…';
       if (data.warnings && data.warnings.length) msg += ` (Note: ${data.warnings.join(' ')})`;
       showBanner('ok', msg);
+      setTimeout(() => {
+        window.location.href = `/p/${profileKey}/`;
+      }, 1500);
     } catch (err) {
       showBanner('error', 'Network error — please try again.');
     } finally {

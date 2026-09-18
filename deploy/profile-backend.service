@@ -16,9 +16,9 @@ After=network.target
 
 [Service]
 Type=simple
-User=www-data
-WorkingDirectory=/var/www/profiles-system/server
-EnvironmentFile=/var/www/profiles-system/server/.env
+User=trustech
+WorkingDirectory=/home/trustech/projects/tutor-portfolio/server
+EnvironmentFile=/home/trustech/projects/tutor-portfolio/server/.env
 ExecStart=/usr/bin/node index.js
 Restart=on-failure
 RestartSec=3

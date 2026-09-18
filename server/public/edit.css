@@ -42,3 +42,13 @@
   color: var(--paper); font: inherit; font-weight: 600; cursor: pointer;
 }
 .auth-submit:disabled { opacity: 0.6; cursor: default; }
+
+.translation-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line-strong); }
+.translation-en { font-size: 0.9rem; color: var(--ink); padding-top: 8px; }
+.translation-ar {
+  width: 100%; box-sizing: border-box; padding: 8px 10px; font: inherit;
+  border: 1px solid var(--line-strong); border-radius: 8px; resize: vertical;
+}
+@media (max-width: 640px) {
+  .translation-row { grid-template-columns: 1fr; }
+}
