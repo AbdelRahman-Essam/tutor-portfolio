@@ -103,7 +103,15 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 .brand:hover { color: var(--accent); }
 
-/* ---------- Language toggle (see the Google Translate widget in site.js) ---------- */
+.edit-profile-link { text-align: center; margin: 32px 0 0; font-size: 0.85rem; }
+.edit-profile-link a { color: var(--ink-soft); }
+.edit-profile-link a:hover { color: var(--accent); }
+
+/* ---------- Language toggle ----------
+   Two plain links between statically pre-built EN/AR pages (see
+   scripts/lib/i18n.js and data/translations/ar.json) — no runtime
+   translation, nothing loaded from a third party. The active language
+   renders as an inert <span>, the other as a real <a>. */
 .lang-switch {
   display: inline-flex;
   border: 1px solid var(--line-strong);
@@ -117,26 +125,19 @@ p { margin: 0 0 1em; max-width: 68ch; }
   border: 0;
   background: transparent;
   color: var(--ink-soft);
-  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
 }
 .lang-btn.active { background: var(--accent); color: var(--paper); }
 
-/* Hide Google's own translate UI — the toggle above drives it instead —
-   and undo the top-offset it injects on <body> for its banner frame. */
-#google_translate_element,
-.goog-te-banner-frame,
-.goog-te-gadget-icon { display: none !important; }
-body { top: 0 !important; }
-.goog-text-highlight { background: none !important; box-shadow: none !important; }
-
-/* Once the widget switches the page to Arabic it adds this class to <html>.
-   Flexbox already mirrors itself once `direction: rtl` is set — only the
-   few places using a physical left/right value (not logical start/end)
-   need an explicit flip here. */
-html.translated-rtl body { direction: rtl; }
-html.translated-rtl .tutor-card.featured { border-left: none; border-right: 3px solid var(--accent); padding-left: 28px; padding-right: 25px; }
-html.translated-rtl .profile-header .summary { text-align: right; }
-html.translated-rtl .cover-ribbon { right: auto; left: 14px; }
+/* Arabic pages are rendered with dir="rtl" directly on <html> (see
+   renderProfile()/renderDirectory() in build-site.js). Flexbox mirrors
+   itself automatically once `direction: rtl` is set — only the few places
+   using a physical left/right value (not logical start/end) need an
+   explicit flip here. */
+html[dir="rtl"] .tutor-card.featured { border-left: none; border-right: 3px solid var(--accent); padding-left: 28px; padding-right: 25px; }
+html[dir="rtl"] .profile-header .summary { text-align: right; }
+html[dir="rtl"] .cover-ribbon { right: auto; left: 14px; }
 
 /* ---------- Directory ---------- */
 .directory-header {
@@ -634,11 +635,34 @@ section.profile-section h2::before {
   color: var(--ink-soft);
 }
 .cert-modal-body { padding: 0; flex: 1; overflow: auto; }
-.cert-modal-body iframe, .cert-modal-body img {
+.cert-modal-body img {
   width: 100%;
   height: 60vh;
+  object-fit: contain;
+  background: var(--accent-tint);
   border: 0;
   display: block;
+}
+/* Certificate files preview through Google Drive's own /preview page —
+   same non-responsive behavior as the Drive video embeds (see site.js):
+   in a narrow/short iframe it renders its own cramped layout instead of
+   filling the space. Same fix: give the iframe a fixed desktop-like size
+   and scale the whole thing down (both dimensions, via fitDriveFrame() in
+   site.js) to fit inside this wrapper, instead of resizing the iframe. */
+.cert-frame-wrap {
+  position: relative;
+  height: 60vh;
+  overflow: hidden;
+  background: var(--accent-tint);
+}
+.cert-frame-wrap iframe {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 640px;
+  height: 820px;
+  border: 0;
+  transform-origin: center center;
 }
 
 .philosophy-quote {
@@ -769,11 +793,7 @@ section.profile-section h2::before {
   <header class="topbar">
     <div class="container">
       <a class="brand" href="#">Profile Directory</a>
-      
-    <div class="lang-switch" data-lang-switch>
-      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
-      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
-    </div>
+      <div class="lang-switch"><span class="lang-btn active">EN</span><a class="lang-btn" href="ar/">العربية</a></div>
     </div>
   </header>
 
@@ -840,7 +860,7 @@ section.profile-section h2::before {
       
   <section class="profile-section">
     <h2>Teaching Experience</h2>
-    <p><strong>2 years</strong> of teaching experience.</p>
+    <p><strong>2</strong> of teaching experience.</p>
     <p>I have over two years of experience teaching Qur’an and Islamic Studies in English to non-Arabic-speaking Muslims. I have worked with several academies, including Makkah Academy, Super Muslim Academy, Ruwad Al-Quran Academy, Bedaya Academy, and Noor Al-Quran Academy, as well as teaching private students. I have taught a range of subjects, including Qur’an, Noor Al-Bayan, Tajweed, Tafsir in English, Seerah, Hadith, and general Islamic Studies. I have experience working with students of different ages and levels and adapt my teaching style to help each learner understand, progress, and build confidence.</p>
   </section>
       
@@ -867,6 +887,7 @@ section.profile-section h2::before {
     <h2>Contact</h2>
     <div class="contact-row"><a class="contact-chip" href="mailto:mohammedahmedteacher@gmail.com" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2.5 5.5h15v9h-15z"/><path d="M2.5 5.5l7.5 6 7.5-6"/></svg><span>Email</span></a><a class="contact-chip" href="https://wa.me/0112583833" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 16.5l1.1-3.2A6.8 6.8 0 1 1 8 15.7z"/><path d="M7.3 7.8c.2-.5.4-.5.6-.5h.5c.2 0 .4 0 .5.4.2.5.6 1.5.6 1.6.1.1.1.3 0 .4-.1.2-.2.3-.3.4-.1.2-.3.3-.1.6.2.3.8 1.3 1.7 2.1 1.2 1 2.1 1.3 2.4 1.5.3.1.5.1.6-.1.2-.2.6-.7.8-1 .2-.2.4-.2.6-.1l1.5.7c.2.1.4.2.4.3.1.2.1 1-.3 1.5-.4.6-1.4 1.1-2.4 1-.9-.1-2.9-.9-4.4-2.4-1.8-1.8-2.5-3.4-2.6-3.7-.1-.2-.7-1.1-.7-2 0-1 .5-1.4.7-1.7z"/></svg><span>WhatsApp</span></a><a class="contact-chip" href="tel:01125893833" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6.5 3.5c-1.5 0-3 1.5-3 3 0 5.5 5.5 11 11 11 1.5 0 3-1.5 3-3 0-.4-.2-.7-.5-.9l-3-2a1 1 0 0 0-1.2.1l-1 1c-1.5-.8-3-2.3-3.8-3.8l1-1a1 1 0 0 0 .1-1.2l-2-3c-.2-.3-.5-.5-.9-.5z"/></svg><span>Phone</span></a><a class="contact-chip" href="https://www.facebook.com/share/1DsovYJCwx/" target="_blank" rel="noopener"><svg viewBox="0 0 20 20" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12.5 6.5h-2c-.8 0-1 .4-1 1v2h3l-.4 3h-2.6v6h-3v-6H4.5v-3h1.9V7c0-2 1-3.5 3.4-3.5h2.7z"/></svg><span>Facebook</span></a></div>
   </section>
+    
   </div>
 
   <footer class="site-footer">Mohamed Ahmed Hassan — Profile Directory</footer>
@@ -879,6 +900,12 @@ section.profile-section h2::before {
   const countEl = document.querySelector('[data-search-count]');
   const emptyEl = document.querySelector('[data-empty-state]');
 
+  function formatCount(n) {
+    if (!countEl) return '';
+    if (n === 1 && countEl.dataset.countOne) return countEl.dataset.countOne;
+    return (countEl.dataset.countOther || '{n}').replace('{n}', n);
+  }
+
   function apply() {
     const q = input.value.trim().toLowerCase();
     let visible = 0;
@@ -888,7 +915,7 @@ section.profile-section h2::before {
       card.style.display = match ? '' : 'none';
       if (match) visible++;
     });
-    if (countEl) countEl.textContent = `${visible} profile${visible === 1 ? '' : 's'}`;
+    if (countEl) countEl.textContent = formatCount(visible);
     if (emptyEl) emptyEl.style.display = visible === 0 ? '' : 'none';
   }
 
@@ -911,15 +938,37 @@ section.profile-section h2::before {
   const modalTitle = document.querySelector('[data-cert-modal-title]');
   const modalBody = document.querySelector('[data-cert-modal-body]');
   const closeBtn = document.querySelector('[data-cert-modal-close]');
+  // Localized "Certificate not showing? / Open it in a new tab" text is
+  // baked into the page (see certificatesSection() in build-site.js) rather
+  // than hardcoded here, since this same site.js file is shared by both the
+  // English and Arabic builds.
+  const fallbackTpl = document.querySelector('.cert-modal-fallback-tpl');
+  const fallbackPrefix = fallbackTpl ? fallbackTpl.dataset.fallbackPrefix : 'Certificate not showing?';
+  const fallbackLinkText = fallbackTpl ? fallbackTpl.dataset.fallbackLink : 'Open it in a new tab';
+
+  // Same fix as the Drive video embeds: keep the iframe fixed at a normal
+  // desktop size, then scale it down to fit the wrapper — on both axes this
+  // time, since certificate documents can be portrait, landscape, or a
+  // multi-page PDF, unlike the fixed 16:9 of a video.
+  const DRIVE_W = 640;
+  const DRIVE_H = 820;
+  function fitDriveFrame() {
+    const wrap = modalBody.querySelector('.cert-frame-wrap');
+    const frame = wrap && wrap.querySelector('iframe');
+    if (!wrap || !frame) return;
+    const scale = Math.min(wrap.clientWidth / DRIVE_W, wrap.clientHeight / DRIVE_H);
+    frame.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  }
 
   function openModal(name, embedUrl, kind) {
     if (!backdrop) return;
     modalTitle.textContent = name;
     modalBody.innerHTML = (kind === 'image'
       ? `<img src="${embedUrl}" alt="${name}">`
-      : `<iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe>`)
-      + `<p class="cert-modal-fallback">Certificate not showing? <a href="${embedUrl}" target="_blank" rel="noopener">Open it in a new tab</a>.</p>`;
+      : `<div class="cert-frame-wrap"><iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe></div>`)
+      + `<p class="cert-modal-fallback">${fallbackPrefix} <a href="${embedUrl}" target="_blank" rel="noopener">${fallbackLinkText}</a>.</p>`;
     backdrop.classList.add('open');
+    if (kind !== 'image') requestAnimationFrame(fitDriveFrame);
   }
   function closeModal() {
     if (!backdrop) return;
@@ -929,6 +978,8 @@ section.profile-section h2::before {
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  window.addEventListener('resize', fitDriveFrame);
+  window.addEventListener('orientationchange', fitDriveFrame);
 })();
 
 // ---------- Google Drive video embeds: fit to container width ----------
@@ -957,44 +1008,6 @@ section.profile-section h2::before {
   window.addEventListener('orientationchange', fit);
 })();
 
-// ---------- Language toggle (Arabic translation) ----------
-// Drives Google's Website Translator (loaded invisibly — see the widget
-// markup and the CSS that hides its own UI) by setting the cookie it reads
-// on load, then reloading. The cookie is set with path=/ so the chosen
-// language carries across every page of the site, not just this one.
-(function initLangSwitch() {
-  const buttons = document.querySelectorAll('[data-lang-btn]');
-  if (!buttons.length) return;
-
-  function currentLang() {
-    const m = document.cookie.match(/googtrans=\/en\/(\w+)/);
-    return m ? m[1] : 'en';
-  }
-
-  const active = currentLang();
-  buttons.forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.langBtn === active);
-    btn.addEventListener('click', () => {
-      const lang = btn.dataset.langBtn;
-      if (lang === active) return;
-      if (lang === 'en') {
-        document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
-      } else {
-        document.cookie = `googtrans=/en/${lang}; path=/`;
-      }
-      location.reload();
-    });
-  });
-})();
-
 </script>
-  
-  <div id="google_translate_element"></div>
-  <script>
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
-    }
-  </script>
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

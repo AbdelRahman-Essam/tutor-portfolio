@@ -6,6 +6,12 @@
   const countEl = document.querySelector('[data-search-count]');
   const emptyEl = document.querySelector('[data-empty-state]');
 
+  function formatCount(n) {
+    if (!countEl) return '';
+    if (n === 1 && countEl.dataset.countOne) return countEl.dataset.countOne;
+    return (countEl.dataset.countOther || '{n}').replace('{n}', n);
+  }
+
   function apply() {
     const q = input.value.trim().toLowerCase();
     let visible = 0;
@@ -15,7 +21,7 @@
       card.style.display = match ? '' : 'none';
       if (match) visible++;
     });
-    if (countEl) countEl.textContent = `${visible} profile${visible === 1 ? '' : 's'}`;
+    if (countEl) countEl.textContent = formatCount(visible);
     if (emptyEl) emptyEl.style.display = visible === 0 ? '' : 'none';
   }
 
@@ -38,15 +44,37 @@
   const modalTitle = document.querySelector('[data-cert-modal-title]');
   const modalBody = document.querySelector('[data-cert-modal-body]');
   const closeBtn = document.querySelector('[data-cert-modal-close]');
+  // Localized "Certificate not showing? / Open it in a new tab" text is
+  // baked into the page (see certificatesSection() in build-site.js) rather
+  // than hardcoded here, since this same site.js file is shared by both the
+  // English and Arabic builds.
+  const fallbackTpl = document.querySelector('.cert-modal-fallback-tpl');
+  const fallbackPrefix = fallbackTpl ? fallbackTpl.dataset.fallbackPrefix : 'Certificate not showing?';
+  const fallbackLinkText = fallbackTpl ? fallbackTpl.dataset.fallbackLink : 'Open it in a new tab';
+
+  // Same fix as the Drive video embeds: keep the iframe fixed at a normal
+  // desktop size, then scale it down to fit the wrapper — on both axes this
+  // time, since certificate documents can be portrait, landscape, or a
+  // multi-page PDF, unlike the fixed 16:9 of a video.
+  const DRIVE_W = 640;
+  const DRIVE_H = 820;
+  function fitDriveFrame() {
+    const wrap = modalBody.querySelector('.cert-frame-wrap');
+    const frame = wrap && wrap.querySelector('iframe');
+    if (!wrap || !frame) return;
+    const scale = Math.min(wrap.clientWidth / DRIVE_W, wrap.clientHeight / DRIVE_H);
+    frame.style.transform = `translate(-50%, -50%) scale(${scale})`;
+  }
 
   function openModal(name, embedUrl, kind) {
     if (!backdrop) return;
     modalTitle.textContent = name;
     modalBody.innerHTML = (kind === 'image'
       ? `<img src="${embedUrl}" alt="${name}">`
-      : `<iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe>`)
-      + `<p class="cert-modal-fallback">Certificate not showing? <a href="${embedUrl}" target="_blank" rel="noopener">Open it in a new tab</a>.</p>`;
+      : `<div class="cert-frame-wrap"><iframe src="${embedUrl}" title="${name}" allow="autoplay"></iframe></div>`)
+      + `<p class="cert-modal-fallback">${fallbackPrefix} <a href="${embedUrl}" target="_blank" rel="noopener">${fallbackLinkText}</a>.</p>`;
     backdrop.classList.add('open');
+    if (kind !== 'image') requestAnimationFrame(fitDriveFrame);
   }
   function closeModal() {
     if (!backdrop) return;
@@ -56,6 +84,8 @@
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
   if (backdrop) backdrop.addEventListener('click', (e) => { if (e.target === backdrop) closeModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  window.addEventListener('resize', fitDriveFrame);
+  window.addEventListener('orientationchange', fitDriveFrame);
 })();
 
 // ---------- Google Drive video embeds: fit to container width ----------
@@ -82,34 +112,4 @@
   fit();
   window.addEventListener('resize', fit);
   window.addEventListener('orientationchange', fit);
-})();
-
-// ---------- Language toggle (Arabic translation) ----------
-// Drives Google's Website Translator (loaded invisibly — see the widget
-// markup and the CSS that hides its own UI) by setting the cookie it reads
-// on load, then reloading. The cookie is set with path=/ so the chosen
-// language carries across every page of the site, not just this one.
-(function initLangSwitch() {
-  const buttons = document.querySelectorAll('[data-lang-btn]');
-  if (!buttons.length) return;
-
-  function currentLang() {
-    const m = document.cookie.match(/googtrans=\/en\/(\w+)/);
-    return m ? m[1] : 'en';
-  }
-
-  const active = currentLang();
-  buttons.forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.langBtn === active);
-    btn.addEventListener('click', () => {
-      const lang = btn.dataset.langBtn;
-      if (lang === active) return;
-      if (lang === 'en') {
-        document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
-      } else {
-        document.cookie = `googtrans=/en/${lang}; path=/`;
-      }
-      location.reload();
-    });
-  });
 })();

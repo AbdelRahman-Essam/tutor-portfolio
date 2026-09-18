@@ -406,18 +406,97 @@ summary; the full contact list still lives in the Contact section further
 down. Certificate cards get a small icon distinguishing an uploaded
 file/PDF from an image.
 
-**Arabic translation.** An EN / العربية toggle sits in the topbar of every
-page (`langSwitch()` in build-site.js, wired up in `initLangSwitch()` in
-site.js). It's backed by Google's own Website Translator widget, loaded
-invisibly (its default UI is hidden via CSS) — the toggle just sets the
-`googtrans` cookie Google's script reads and reloads the page, so the
-chosen language persists across every page on the site without us
-maintaining a second, hand-translated copy of every profile. Once Arabic is
-active, Google adds `translated-rtl` to `<html>`; a few CSS rules under
-that selector flip the handful of physical left/right values in the
-layout (the featured-card border, the cover ribbon, summary alignment) —
-flexbox layouts elsewhere mirror themselves automatically once
-`direction: rtl` is set, so most of the page needs no extra rule at all.
+**Arabic translation — stored, not machine/runtime-translated.** An earlier
+version of this piped every page through Google's Website Translator widget
+at runtime, in the visitor's browser. That's gone now — Google Translate's
+output quality wasn't good enough for people's own bios and professional
+credentials, and it meant re-translating the same page on every single
+visit, for every visitor, dependent on Google's service being reachable.
+
+Now every page is built **twice** — once per language — with real,
+hand-written Arabic baked directly into the static HTML:
+
+- `scripts/lib/i18n.js` — the dictionary of static UI strings (headings,
+  labels, button text) that's identical on every page, in English and
+  Arabic.
+- `data/translations/ar.json` — hand-translated content **per profile**,
+  keyed by `profileKey`: name, title, summary, specializations, languages,
+  certificates, work experience, projects, education, etc. Only real
+  translatable text lives here — ids, URLs, dates, and file references
+  always come from the English profile data untouched.
+- `scripts/lib/localize.js` — merges a profile's Arabic entry onto its
+  English data field-by-field. Anything NOT yet translated for a given
+  profile simply falls back to the English text, so a partially-translated
+  profile still renders correctly instead of breaking or showing blanks.
+
+`build-site.js` calls this twice in `main()`: once building the normal
+English pages, once building an Arabic mirror of every page under `/ar/`
+(`site/ar/index.html` for the directory, `site/p/<key>/ar/index.html` per
+profile). The EN/العربية toggle in the topbar (`langSwitch()`) is just two
+static links between these pre-built pages — no cookie, no JavaScript
+translation step, nothing loaded from a third party, and it works with no
+internet connection at all once the site is loaded.
+
+Arabic pages are rendered with `dir="rtl"` directly on `<html>`. Flexbox
+mirrors itself automatically once `direction: rtl` is set, so most of the
+layout needs no extra CSS at all; a handful of rules under
+`html[dir="rtl"]` in styles.css flip the few places using a physical
+left/right value instead of a logical one (the featured-card border, the
+cover ribbon, summary alignment).
+
+**Adding or updating a translation:** open `data/translations/ar.json`,
+find (or add) the entry for that `profileKey`, and fill in whichever
+fields need it — you don't need to translate everything at once. Run
+`node scripts/build-site.js` again and both language versions rebuild.
+For a brand-new profile with no entry yet, the Arabic page still renders
+correctly — every field just falls back to English until someone adds a
+translation.
+
+## Letting someone edit their own profile
+
+This site has **no backend, no database, and no server** — it's a folder
+of static HTML files. That's deliberate (it's simple, free to host, and
+has nothing that can be hacked), but it also means there's nowhere safe to
+put a real login system: a login page in plain HTML/JS has no server
+behind it to check a password against, and there's no secure place to hold
+Google Drive credentials that upload on the visitor's behalf — anyone
+could open the page's source and extract them. Building a login page here
+would either not actually be secure, or would need standing up real
+infrastructure (a server, a database of accounts, Google OAuth) — a much
+bigger project than "add a feature to this static site."
+
+The good news: this system already has a login-and-upload mechanism that's
+real, secure, and free — **the Google Form people originally filled out to
+be listed.** Google Forms can:
+- require the person to sign in with their Google account (that's the
+  login),
+- let them upload a new video or photo straight to Drive via a file-upload
+  question (exactly how every video/photo/certificate already on the site
+  got there), and
+- give them a link back to **their own submission** to edit it later.
+
+To turn this on for your form (one-time setup, no code):
+1. In the Form's Settings → Responses, turn on **"Restrict to 1 response"**
+   and **"Collect email addresses"** (this requires sign-in and ties each
+   response to one person).
+2. After someone submits, Forms shows them a confirmation screen with an
+   **"Edit your response"** link — that link lets them come back anytime
+   and change any answer, including re-uploading a video or photo (the new
+   file lands in the same Drive folder as before).
+3. Optionally, add a column to the sheet (e.g. `Edit Response Link`) and
+   paste each person's edit link into their row — the build already looks
+   for a column named `Edit Response Link` (or `Profile Edit Link` /
+   `Edit Link`) and, if it finds one, shows an **"Edit my profile"** link
+   near the bottom of that person's page automatically (see `editLink` in
+   `scripts/lib/schema.js`). Without that column, nothing changes — no
+   broken link ever appears.
+
+This reuses infrastructure you already trust (the same Form/Sheet/Drive
+this whole system is built on) instead of a second, weaker one. If you
+later do want people to edit directly on the site itself rather than
+going back to the Form, that's a real project — a small backend, accounts,
+and a Google Drive integration — happy to help design that when you're
+ready to stand up that infrastructure.
 
 ### Photo cropping
 Profile photos are shown in a circular frame, cropped with `object-fit:

@@ -10,11 +10,7 @@
   <header class="topbar">
     <div class="container">
       <a class="brand" href="./">Profile Directory</a>
-      
-    <div class="lang-switch" data-lang-switch>
-      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
-      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
-    </div>
+      <div class="lang-switch"><span class="lang-btn active">EN</span><a class="lang-btn" href="ar/">العربية</a></div>
     </div>
   </header>
 
@@ -25,8 +21,8 @@
     </div>
 
     <div class="search-row">
-      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search tutors by name or title">
-      <div class="search-count" data-search-count>3 profiles</div>
+      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search by name or title…">
+      <div class="search-count" data-search-count data-count-one="1 profile" data-count-other="{n} profiles">3 profiles</div>
     </div>
 
     <div class="tutor-grid">
@@ -81,15 +77,7 @@
     </div>
   </div>
 
-  <footer class="site-footer">Generated 2026-09-17T06:50:17.757Z</footer>
+  <footer class="site-footer">Generated <bdi>2026-09-18T04:04:10.652Z</bdi></footer>
   <script src="assets/site.js"></script>
-  
-  <div id="google_translate_element"></div>
-  <script>
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
-    }
-  </script>
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

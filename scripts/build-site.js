@@ -2,10 +2,13 @@
 const fs = require('fs');
 const path = require('path');
 const { resolveTheme } = require('./lib/theme-color');
+const { S } = require('./lib/i18n');
+const { localizeProfile, localizeDirectoryEntry } = require('./lib/localize');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
 const DATA_INDEX = path.join(ROOT, 'data', 'index.json');
+const TRANSLATIONS_FILE = path.join(ROOT, 'data', 'translations', 'ar.json');
 const SITE_DIR = path.join(ROOT, 'site');
 const PROFILES_OUT_DIR = path.join(SITE_DIR, 'p');
 
@@ -31,7 +34,7 @@ function avatarHtml(photo, name, cssClass) {
   if (photo && photo.embedUrl) {
     return `<img class="${cssClass}" src="${esc(photo.embedUrl)}" alt="${esc(name)}" loading="lazy">`;
   }
-  return `<div class="${cssClass === 'avatar' ? 'avatar-fallback' : 'avatar-fallback'}">${esc(initials(name))}</div>`;
+  return `<div class="avatar-fallback">${esc(initials(name))}</div>`;
 }
 
 const CORNER_ORNAMENT_SVG = ''; // retired along with the circular photo crop (see git history if wanted back)
@@ -46,40 +49,44 @@ function themeAttrs(rawTheme) {
   return ` data-theme="${esc(slug)}"${style}`;
 }
 
-// Small EN/Arabic switcher in the topbar. It drives Google's Website
-// Translator behind the scenes (see the widget + initLangSwitch() in
-// site.js) rather than us maintaining separate translated copies of every
-// profile — the actual toggle logic lives in site.js since it just flips a
-// cookie and reloads.
-function langSwitch() {
-  return `
-    <div class="lang-switch" data-lang-switch>
-      <button type="button" class="lang-btn" data-lang-btn="en">EN</button>
-      <button type="button" class="lang-btn" data-lang-btn="ar">العربية</button>
-    </div>`;
+// The EN/Arabic switcher in the topbar. This is now two plain static links
+// between two pre-built pages — no runtime translation, nothing loaded from
+// Google, nothing that can mistranslate a name. `hrefs.en`/`hrefs.ar` is '#'
+// for whichever language the current page already is (rendered as inert),
+// and a relative link to the other language's version of this same page.
+function langSwitch(lang, hrefs) {
+  const enPart = lang === 'en'
+    ? `<span class="lang-btn active">EN</span>`
+    : `<a class="lang-btn" href="${esc(hrefs.en)}">EN</a>`;
+  const arPart = lang === 'ar'
+    ? `<span class="lang-btn active">العربية</span>`
+    : `<a class="lang-btn" href="${esc(hrefs.ar)}">العربية</a>`;
+  return `<div class="lang-switch">${enPart}${arPart}</div>`;
 }
 
-// Loads Google's Website Translator engine (invisibly — see the CSS that
-// hides its default widget UI) so the EN/AR buttons above have something to
-// drive. Included once per page, right before the closing </body>.
-const TRANSLATE_WIDGET = `
-  <div id="google_translate_element"></div>
-  <script>
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
-    }
-  </script>
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>`;
+// Relative paths differ depending on which language page we're building and
+// how deep it sits (site/, site/ar/, site/p/<key>/, site/p/<key>/ar/).
+function directoryCtx(lang) {
+  return lang === 'ar'
+    ? { assetsBase: '../assets/', brandHref: './', langHrefs: { en: '../', ar: '#' }, profileHref: (key) => `../p/${key}/ar/` }
+    : { assetsBase: 'assets/', brandHref: './', langHrefs: { en: '#', ar: 'ar/' }, profileHref: (key) => `p/${key}/` };
+}
+function profileCtx(lang) {
+  return lang === 'ar'
+    ? { assetsBase: '../../../assets/', brandHref: '../../../ar/', langHrefs: { en: '../', ar: '#' } }
+    : { assetsBase: '../../assets/', brandHref: '../../', langHrefs: { en: '#', ar: 'ar/' } };
+}
 
 // ---------------------------------------------------------------------------
 // Directory page
 // ---------------------------------------------------------------------------
 
-function tutorCard(t) {
+function tutorCard(t, lang, profileHref) {
   const tags = (t.tags || []).slice(0, 4);
+  const featuredLabel = t.kind === 'professional' ? S(lang, 'featuredProfessional') : S(lang, 'featuredTutor');
 
   return `
-  <a href="p/${esc(t.profileKey)}/" class="tutor-card${t.featured ? ' featured' : ''}"${themeAttrs(t.theme)}
+  <a href="${esc(profileHref(t.profileKey))}" class="tutor-card${t.featured ? ' featured' : ''}"${themeAttrs(t.theme)}
      data-tutor-card data-name="${esc(t.name)}" data-title="${esc(t.title || '')} ${esc(tags.join(' '))} ${esc(t.location || '')}">
     <div class="card-top">
       ${avatarHtml(t.photo, t.name, 'avatar')}
@@ -89,52 +96,53 @@ function tutorCard(t) {
         ${t.location ? `<p class="title">${esc(t.location)}</p>` : ''}
       </div>
     </div>
-    ${t.featured ? `<span class="featured-mark">Featured ${t.kind === 'professional' ? 'professional' : 'tutor'}</span>` : ''}
+    ${t.featured ? `<span class="featured-mark">${esc(featuredLabel)}</span>` : ''}
     ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ''}
     ${tags.length ? `<div class="tag-row">${tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}</div>` : ''}
   </a>`;
 }
 
-function renderDirectory(directory) {
-  const sorted = [...directory.profiles].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+function renderDirectory(directory, lang, profiles) {
+  const ctx = directoryCtx(lang);
+  const sorted = [...profiles].sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  const dirAttr = lang === 'ar' ? ' dir="rtl"' : '';
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}"${dirAttr}>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Profile Directory</title>
-<link rel="stylesheet" href="assets/styles.css">
+<title>${esc(S(lang, 'brand'))}</title>
+<link rel="stylesheet" href="${ctx.assetsBase}styles.css">
 </head>
 <body data-theme="emerald">
   <header class="topbar">
     <div class="container">
-      <a class="brand" href="./">Profile Directory</a>
-      ${langSwitch()}
+      <a class="brand" href="${esc(ctx.brandHref)}">${esc(S(lang, 'brand'))}</a>
+      ${langSwitch(lang, ctx.langHrefs)}
     </div>
   </header>
 
   <div class="container">
     <div class="directory-header">
-      <h1>Find a tutor or professional</h1>
-      <p>Browse profiles with videos, certificates, experience and contact details.</p>
+      <h1>${esc(S(lang, 'directoryTitle'))}</h1>
+      <p>${esc(S(lang, 'directorySubtitle'))}</p>
     </div>
 
     <div class="search-row">
-      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search tutors by name or title">
-      <div class="search-count" data-search-count>${sorted.length} profile${sorted.length === 1 ? '' : 's'}</div>
+      <input class="search-input" type="text" placeholder="${esc(S(lang, 'searchPlaceholder'))}" data-search-input aria-label="${esc(S(lang, 'searchPlaceholder'))}">
+      <div class="search-count" data-search-count data-count-one="${esc(S(lang, 'profilesCount', 1))}" data-count-other="${esc(S(lang, 'profilesCount', '{n}'))}">${esc(S(lang, 'profilesCount', sorted.length))}</div>
     </div>
 
     <div class="tutor-grid">
-      ${sorted.map(tutorCard).join('\n')}
+      ${sorted.map((t) => tutorCard(t, lang, ctx.profileHref)).join('\n')}
     </div>
     <div class="empty-state" data-empty-state style="display:none;">
-      No profiles match that search.
+      ${esc(S(lang, 'emptyState'))}
     </div>
   </div>
 
-  <footer class="site-footer">Generated ${esc(directory.generatedAt)}</footer>
-  <script src="assets/site.js"></script>
-  ${TRANSLATE_WIDGET}
+  <footer class="site-footer">${esc(S(lang, 'generated'))} <bdi>${esc(directory.generatedAt)}</bdi></footer>
+  <script src="${ctx.assetsBase}site.js"></script>
 </body>
 </html>`;
 }
@@ -160,38 +168,38 @@ const CERT_ICONS = {
   image: `<svg viewBox="0 0 20 20" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="4" width="14" height="12" rx="1.5"/><circle cx="7.3" cy="8.3" r="1.2"/><path d="M4 15l4-4 3 3 3-3.5 3 3.5"/></svg>`,
 };
 
-function contactChips(contacts) {
+function contactChips(contacts, lang) {
   if (!contacts) return '';
   const map = [
-    ['email', (v) => `mailto:${v}`, 'Email'],
-    ['whatsapp', (v) => `https://wa.me/${v.replace(/[^\d]/g, '')}`, 'WhatsApp'],
-    ['phone', (v) => `tel:${v}`, 'Phone'],
-    ['telegram', (v) => `https://t.me/${v.replace(/^@/, '')}`, 'Telegram'],
-    ['facebook', (v) => v, 'Facebook'],
-    ['instagram', (v) => v, 'Instagram'],
-    ['linkedin', (v) => v, 'LinkedIn'],
-    ['github', (v) => v, 'GitHub'],
-    ['website', (v) => v, 'Website'],
+    ['email', (v) => `mailto:${v}`, S(lang, 'contactEmail')],
+    ['whatsapp', (v) => `https://wa.me/${v.replace(/[^\d]/g, '')}`, S(lang, 'contactWhatsApp')],
+    ['phone', (v) => `tel:${v}`, S(lang, 'contactPhone')],
+    ['telegram', (v) => `https://t.me/${v.replace(/^@/, '')}`, S(lang, 'contactTelegram')],
+    ['facebook', (v) => v, S(lang, 'contactFacebook')],
+    ['instagram', (v) => v, S(lang, 'contactInstagram')],
+    ['linkedin', (v) => v, S(lang, 'contactLinkedIn')],
+    ['github', (v) => v, S(lang, 'contactGitHub')],
+    ['website', (v) => v, S(lang, 'contactWebsite')],
   ];
   const chips = map
     .filter(([key]) => contacts[key])
-    .map(([key, hrefFn, label]) => `<a class="contact-chip" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key]}<span>${label}</span></a>`);
+    .map(([key, hrefFn, label]) => `<a class="contact-chip" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key]}<span>${esc(label)}</span></a>`);
   if (!chips.length) return '';
   return `<div class="contact-row">${chips.join('')}</div>`;
 }
 
-function teachingProfileSection(teaching) {
+function teachingProfileSection(teaching, lang) {
   const groups = [
-    ['Specializations', teaching.specializations],
-    ['Age Groups', teaching.ageGroups],
-    ['Levels', teaching.levels],
-    ['Format', teaching.format],
+    [S(lang, 'specializations'), teaching.specializations],
+    [S(lang, 'ageGroups'), teaching.ageGroups],
+    [S(lang, 'levels'), teaching.levels],
+    [S(lang, 'format'), teaching.format],
   ].filter(([, list]) => list && list.length);
   if (!groups.length && !teaching.availability) return '';
 
   return `
   <section class="profile-section">
-    <h2>Teaching Profile</h2>
+    <h2>${esc(S(lang, 'teachingProfile'))}</h2>
     ${groups.map(([label, list]) => `
     <div class="teaching-group">
       <h3 class="group-label">${esc(label)}</h3>
@@ -201,50 +209,41 @@ function teachingProfileSection(teaching) {
   </section>`;
 }
 
-function experienceSection(teaching) {
+function experienceSection(teaching, lang) {
   if (!teaching.experienceYears && !teaching.experienceDescription) return '';
   return `
   <section class="profile-section">
-    <h2>Teaching Experience</h2>
-    ${teaching.experienceYears ? `<p><strong>${esc(teaching.experienceYears)} years</strong> of teaching experience.</p>` : ''}
+    <h2>${esc(S(lang, 'teachingExperience'))}</h2>
+    ${teaching.experienceYears ? `<p><strong>${esc(teaching.experienceYears)}</strong> ${esc(S(lang, 'ofTeachingExperience'))}</p>` : ''}
     ${teaching.experienceDescription ? `<p>${esc(teaching.experienceDescription)}</p>` : ''}
   </section>`;
 }
 
-function philosophySection(teaching) {
+function philosophySection(teaching, lang) {
   if (!teaching.philosophy) return '';
   return `
   <section class="profile-section">
-    <h2>Teaching Philosophy</h2>
+    <h2>${esc(S(lang, 'teachingPhilosophy'))}</h2>
     <p class="philosophy-quote">${esc(teaching.philosophy)}</p>
   </section>`;
 }
 
-function languagesSection(languages) {
+function languagesSection(languages, lang) {
   if (!languages || !languages.length) return '';
   return `
   <section class="profile-section">
-    <h2>Languages</h2>
+    <h2>${esc(S(lang, 'languages'))}</h2>
     <ul class="lang-list">
       ${languages.map((l) => `<li><span>${esc(l.language)}</span>${l.proficiency ? `<span class="level">${esc(l.proficiency)}</span>` : ''}</li>`).join('')}
     </ul>
   </section>`;
 }
 
-function skillsSection(skills) {
-  if (!skills || !skills.length) return '';
-  return `
-  <section class="profile-section">
-    <h2>Technical Skills</h2>
-    <div class="pill-list">${skills.map((s) => `<span class="pill">${esc(s)}</span>`).join('')}</div>
-  </section>`;
-}
-
-function videosSection(videos) {
+function videosSection(videos, lang) {
   if (!videos || !videos.length) return '';
   return `
   <section class="profile-section">
-    <h2>Videos</h2>
+    <h2>${esc(S(lang, 'videos'))}</h2>
     <div class="video-grid">
       ${videos.map((v) => `
       <div class="video-item">
@@ -256,7 +255,7 @@ function videosSection(videos) {
   </section>`;
 }
 
-function certificatesSection(certificates) {
+function certificatesSection(certificates, lang) {
   if (!certificates || !certificates.length) return '';
   const cards = certificates.map((c) => {
     const hasFile = !!(c.file && c.file.embedUrl);
@@ -267,14 +266,14 @@ function certificatesSection(certificates) {
         <h3>${esc(c.name)}</h3>
         ${c.organization ? `<p class="org">${esc(c.organization)}</p>` : ''}
         ${c.date ? `<p class="date">${esc(c.date)}</p>` : ''}
-        ${hasFile ? '<p class="view-hint">View certificate</p>' : ''}
+        ${hasFile ? `<p class="view-hint">${esc(S(lang, 'viewCertificate'))}</p>` : ''}
       </button>
     `;
   }).join('');
 
   return `
   <section class="profile-section">
-    <h2>Certificates</h2>
+    <h2>${esc(S(lang, 'certificates'))}</h2>
     <div class="cert-grid" data-cert-section>
       ${cards}
     </div>
@@ -287,16 +286,17 @@ function certificatesSection(certificates) {
         <button type="button" class="cert-modal-close" data-cert-modal-close aria-label="Close">&times;</button>
       </div>
       <div class="cert-modal-body" data-cert-modal-body></div>
+      <p class="cert-modal-fallback-tpl" hidden data-fallback-prefix="${esc(S(lang, 'certNotShowing'))}" data-fallback-link="${esc(S(lang, 'openInNewTab'))}"></p>
     </div>
   </div>`;
 }
 
-function contactSection(contacts) {
-  const chips = contactChips(contacts);
+function contactSection(contacts, lang) {
+  const chips = contactChips(contacts, lang);
   if (!chips) return '';
   return `
   <section class="profile-section">
-    <h2>Contact</h2>
+    <h2>${esc(S(lang, 'contact'))}</h2>
     ${chips}
   </section>`;
 }
@@ -314,16 +314,16 @@ function metaLine(t) {
 
 // Real numbers pulled straight from the profile's own data — no scores or
 // metrics that aren't actually in the sheet.
-function quickFacts(t) {
+function quickFacts(t, lang) {
   const isPro = t.kind === 'professional';
   const expYears = isPro ? (t.professional && t.professional.experienceYears) : (t.teaching && t.teaching.experienceYears);
   const specList = isPro ? (t.professional && t.professional.expertise) : (t.teaching && t.teaching.specializations);
 
   const facts = [];
-  if (expYears) facts.push([expYears, Number(expYears) === 1 ? 'Year experience' : 'Years experience']);
-  if (specList && specList.length) facts.push([specList.length, isPro ? 'Areas of expertise' : 'Specializations']);
-  if (t.languages && t.languages.length) facts.push([t.languages.length, t.languages.length === 1 ? 'Language' : 'Languages']);
-  if (t.certificates && t.certificates.length) facts.push([t.certificates.length, t.certificates.length === 1 ? 'Certificate' : 'Certificates']);
+  if (expYears) facts.push([expYears, Number(expYears) === 1 ? S(lang, 'statYear') : S(lang, 'statYears')]);
+  if (specList && specList.length) facts.push([specList.length, isPro ? S(lang, 'statAreasExpertise') : S(lang, 'statSpecializations')]);
+  if (t.languages && t.languages.length) facts.push([t.languages.length, t.languages.length === 1 ? S(lang, 'statLanguage') : S(lang, 'statLanguages')]);
+  if (t.certificates && t.certificates.length) facts.push([t.certificates.length, t.certificates.length === 1 ? S(lang, 'statCertificate') : S(lang, 'statCertificates')]);
 
   if (!facts.length) return '';
   return `
@@ -335,13 +335,13 @@ function quickFacts(t) {
 // The single most direct way to reach this person, surfaced as one
 // prominent button up top — the full list of every contact method they
 // gave still lives in the Contact section further down the page.
-function primaryCta(contacts) {
+function primaryCta(contacts, lang) {
   if (!contacts) return '';
   const order = [
-    ['whatsapp', (v) => `https://wa.me/${v.replace(/[^\d]/g, '')}`, 'Message on WhatsApp'],
-    ['email', (v) => `mailto:${v}`, 'Get in touch'],
-    ['telegram', (v) => `https://t.me/${v.replace(/^@/, '')}`, 'Message on Telegram'],
-    ['phone', (v) => `tel:${v}`, 'Call'],
+    ['whatsapp', (v) => `https://wa.me/${v.replace(/[^\d]/g, '')}`, S(lang, 'messageWhatsApp')],
+    ['email', (v) => `mailto:${v}`, S(lang, 'getInTouch')],
+    ['telegram', (v) => `https://t.me/${v.replace(/^@/, '')}`, S(lang, 'messageTelegram')],
+    ['phone', (v) => `tel:${v}`, S(lang, 'call')],
   ];
   const hit = order.find(([key]) => contacts[key]);
   if (!hit) return '';
@@ -358,23 +358,23 @@ function pillSection(heading, items) {
   </section>`;
 }
 
-function professionalOverviewSection(p) {
+function professionalOverviewSection(p, lang) {
   const pro = p.professional || {};
   if (!pro.experienceYears && !pro.experienceSummary) return '';
   return `
   <section class="profile-section">
-    <h2>Professional Overview</h2>
-    ${pro.experienceYears ? `<p><strong>${esc(pro.experienceYears)} years</strong> of professional experience.</p>` : ''}
+    <h2>${esc(S(lang, 'professionalOverview'))}</h2>
+    ${pro.experienceYears ? `<p><strong>${esc(pro.experienceYears)}</strong> ${esc(S(lang, 'ofProfessionalExperience'))}</p>` : ''}
     ${pro.experienceSummary ? `<p>${esc(pro.experienceSummary)}</p>` : ''}
   </section>`;
 }
 
-function workExperienceSection(pro) {
+function workExperienceSection(pro, lang) {
   const items = (pro && pro.workExperience) || [];
   if (!items.length) return '';
   return `
   <section class="profile-section">
-    <h2>Work Experience</h2>
+    <h2>${esc(S(lang, 'workExperience'))}</h2>
     ${items.map((w) => `
     <div class="entry">
       ${w.position ? `<h3>${esc(w.position)}</h3>` : ''}
@@ -384,12 +384,12 @@ function workExperienceSection(pro) {
   </section>`;
 }
 
-function projectsSection(pro) {
+function projectsSection(pro, lang) {
   const items = (pro && pro.projects) || [];
   if (!items.length) return '';
   return `
   <section class="profile-section">
-    <h2>Projects &amp; Portfolio</h2>
+    <h2>${esc(S(lang, 'projectsPortfolio'))}</h2>
     <div class="project-grid">
       ${items.map((x) => `
       <div class="project-card">
@@ -400,14 +400,14 @@ function projectsSection(pro) {
   </section>`;
 }
 
-function educationSection(edu) {
+function educationSection(edu, lang) {
   if (!edu) return '';
   const hasMain = edu.qualification || edu.institution || edu.graduationYear;
   const extra = edu.additional || [];
   if (!hasMain && !extra.length) return '';
   return `
   <section class="profile-section">
-    <h2>Education &amp; Qualifications</h2>
+    <h2>${esc(S(lang, 'educationQualifications'))}</h2>
     ${hasMain ? `
     <div class="edu-block">
       ${edu.qualification ? `<h3>${esc(edu.qualification)}</h3>` : ''}
@@ -417,27 +417,38 @@ function educationSection(edu) {
   </section>`;
 }
 
-function renderProfile(t) {
+// Only appears when the sheet has an "Edit Response Link" (or similar)
+// column filled in for this person — see the editLink comment in
+// schema.js and the setup steps in SYSTEM_OVERVIEW.md. Self-service editing
+// with no login system of our own to build or secure.
+function editLinkSection(t, lang) {
+  if (!t.personal.editLink) return '';
+  return `<p class="edit-profile-link"><a href="${esc(t.personal.editLink)}" target="_blank" rel="noopener">${esc(S(lang, 'editMyProfile'))}</a></p>`;
+}
+
+function renderProfile(t, lang) {
+  const ctx = profileCtx(lang);
+  const dirAttr = lang === 'ar' ? ' dir="rtl"' : '';
   return `<!DOCTYPE html>
-<html lang="en">
+<html lang="${lang}"${dirAttr}>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(t.personal.name)}${t.personal.title ? ' — ' + esc(t.personal.title) : ''}</title>
-<link rel="stylesheet" href="../../assets/styles.css">
+<link rel="stylesheet" href="${ctx.assetsBase}styles.css">
 </head>
 <body class="profile-body"${themeAttrs(t.personal.theme)}>
   <header class="topbar">
     <div class="container">
-      <a class="brand" href="../../">Profile Directory</a>
-      ${langSwitch()}
+      <a class="brand" href="${esc(ctx.brandHref)}">${esc(S(lang, 'brand'))}</a>
+      ${langSwitch(lang, ctx.langHrefs)}
     </div>
   </header>
 
   <div class="profile-wrap">
     <div class="profile-header">
       <div class="profile-cover">
-        ${t.featured ? `<span class="cover-ribbon">★ Featured ${t.kind === 'professional' ? 'professional' : 'tutor'}</span>` : ''}
+        ${t.featured ? `<span class="cover-ribbon">★ ${esc(t.kind === 'professional' ? S(lang, 'featuredProfessional') : S(lang, 'featuredTutor'))}</span>` : ''}
       </div>
       <div class="photo-frame">
         ${CORNER_ORNAMENT_SVG}
@@ -447,35 +458,35 @@ function renderProfile(t) {
       ${t.personal.title ? `<p class="title">${esc(t.personal.title)}</p>` : ''}
       ${metaLine(t)}
       ${t.personal.summary ? `<p class="summary">${esc(t.personal.summary)}</p>` : ''}
-      ${quickFacts(t)}
-      ${primaryCta(t.contacts)}
+      ${quickFacts(t, lang)}
+      ${primaryCta(t.contacts, lang)}
     </div>
 
     ${t.kind === 'professional' ? `
-      ${professionalOverviewSection(t)}
-      ${pillSection('Areas of Expertise', t.professional && t.professional.expertise)}
-      ${videosSection(t.videos)}
-      ${workExperienceSection(t.professional)}
-      ${projectsSection(t.professional)}
-      ${educationSection(t.education)}
-      ${pillSection('Software & Tools', t.professional && t.professional.tools)}
-      ${languagesSection(t.languages)}
-      ${certificatesSection(t.certificates)}
+      ${professionalOverviewSection(t, lang)}
+      ${pillSection(S(lang, 'areasOfExpertise'), t.professional && t.professional.expertise)}
+      ${videosSection(t.videos, lang)}
+      ${workExperienceSection(t.professional, lang)}
+      ${projectsSection(t.professional, lang)}
+      ${educationSection(t.education, lang)}
+      ${pillSection(S(lang, 'softwareTools'), t.professional && t.professional.tools)}
+      ${languagesSection(t.languages, lang)}
+      ${certificatesSection(t.certificates, lang)}
     ` : `
-      ${teachingProfileSection(t.teaching)}
-      ${videosSection(t.videos)}
-      ${experienceSection(t.teaching)}
-      ${languagesSection(t.languages)}
-      ${pillSection('Technical Skills', t.skills)}
-      ${philosophySection(t.teaching)}
-      ${certificatesSection(t.certificates)}
+      ${teachingProfileSection(t.teaching, lang)}
+      ${videosSection(t.videos, lang)}
+      ${experienceSection(t.teaching, lang)}
+      ${languagesSection(t.languages, lang)}
+      ${pillSection(S(lang, 'technicalSkills'), t.skills)}
+      ${philosophySection(t.teaching, lang)}
+      ${certificatesSection(t.certificates, lang)}
     `}
-    ${contactSection(t.contacts)}
+    ${contactSection(t.contacts, lang)}
+    ${editLinkSection(t, lang)}
   </div>
 
-  <footer class="site-footer">${esc(t.personal.name)} — Profile Directory</footer>
-  <script src="../../assets/site.js"></script>
-  ${TRANSLATE_WIDGET}
+  <footer class="site-footer">${esc(t.personal.name)} ${esc(S(lang, 'footerSuffix'))}</footer>
+  <script src="${ctx.assetsBase}site.js"></script>
 </body>
 </html>`;
 }
@@ -491,9 +502,17 @@ function main() {
   }
 
   fs.mkdirSync(PROFILES_OUT_DIR, { recursive: true });
+  fs.mkdirSync(path.join(SITE_DIR, 'ar'), { recursive: true });
 
   const directory = JSON.parse(fs.readFileSync(DATA_INDEX, 'utf8'));
-  fs.writeFileSync(path.join(SITE_DIR, 'index.html'), renderDirectory(directory));
+  const translations = fs.existsSync(TRANSLATIONS_FILE) ? JSON.parse(fs.readFileSync(TRANSLATIONS_FILE, 'utf8')) : {};
+
+  // English directory (unchanged content) + Arabic directory (each card's
+  // title/summary/tags localized from the same per-profile translation
+  // entry used on the profile pages, falling back to English per-field).
+  fs.writeFileSync(path.join(SITE_DIR, 'index.html'), renderDirectory(directory, 'en', directory.profiles));
+  const arProfiles = directory.profiles.map((p) => localizeDirectoryEntry(p, translations[p.profileKey]));
+  fs.writeFileSync(path.join(SITE_DIR, 'ar', 'index.html'), renderDirectory(directory, 'ar', arProfiles));
 
   const files = fs.readdirSync(DATA_PROFILES_DIR).filter((f) => f.endsWith('.json'));
   let count = 0;
@@ -501,11 +520,17 @@ function main() {
     const tutor = JSON.parse(fs.readFileSync(path.join(DATA_PROFILES_DIR, file), 'utf8'));
     const outDir = path.join(PROFILES_OUT_DIR, tutor.profileKey);
     fs.mkdirSync(outDir, { recursive: true });
-    fs.writeFileSync(path.join(outDir, 'index.html'), renderProfile(tutor));
+    fs.writeFileSync(path.join(outDir, 'index.html'), renderProfile(tutor, 'en'));
+
+    const arOutDir = path.join(outDir, 'ar');
+    fs.mkdirSync(arOutDir, { recursive: true });
+    const arTutor = localizeProfile(tutor, translations[tutor.profileKey]);
+    fs.writeFileSync(path.join(arOutDir, 'index.html'), renderProfile(arTutor, 'ar'));
+
     count++;
   }
 
-  console.log(`Built directory page + ${count} profile page(s) into ${SITE_DIR}`);
+  console.log(`Built directory page (EN+AR) + ${count} profile page(s) (EN+AR) into ${SITE_DIR}`);
 }
 
 main();

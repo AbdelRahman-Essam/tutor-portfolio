@@ -90,6 +90,14 @@ function commonFields(row, warn) {
     visibility: (row.get('Profile Visibility') || 'Unlisted').toLowerCase(),
     email: row.get('Email Address'),
     timestamp: row.get('Timestamp'),
+    // Optional: the "Edit your response" link Google Forms shows a person
+    // right after they submit (Settings > Responses > "Edit after submit").
+    // If the sheet owner adds a column for it and pastes each person's link
+    // in, an "Edit my profile" button appears on their page — this is how
+    // someone updates their own info or adds a new video/photo (Drive
+    // upload questions save straight to Drive, same as at signup) without
+    // any login system of ours. See SYSTEM_OVERVIEW.md for full setup.
+    editLink: row.get('Edit Response Link') || row.get('Profile Edit Link') || row.get('Edit Link'),
     videos: parseVideos(row, warn),
     certificates: parseCertificates(row, warn),
     contacts: parseContacts(row),
