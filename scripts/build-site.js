@@ -2,12 +2,19 @@
 const fs = require('fs');
 const path = require('path');
 const { resolveTheme } = require('./lib/theme-color');
+const { loadDictionary } = require('./lib/i18n');
 
 const ROOT = path.join(__dirname, '..');
 const DATA_PROFILES_DIR = path.join(ROOT, 'data', 'profiles');
 const DATA_INDEX = path.join(ROOT, 'data', 'index.json');
 const SITE_DIR = path.join(ROOT, 'site');
 const PROFILES_OUT_DIR = path.join(SITE_DIR, 'p');
+
+// English -> Arabic dictionary, loaded once (static UI strings + every
+// data/i18n/<profileKey>.json produced by scripts/translate.js). See
+// scripts/lib/i18n.js. Populated by main()/renderAll() before any page is
+// rendered; bi() below reads from it.
+let DICT = {};
 
 function esc(str) {
   if (str == null) return '';
@@ -16,6 +23,22 @@ function esc(str) {
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+// Renders a piece of user-facing text as a pair of spans, one per language,
+// with the inactive one hidden by CSS (see the `[data-i18n-en]`/
+// `[data-i18n-ar]` rules in styles.css) and flipped instantly, client-side,
+// by the EN/AR toggle in site.js — no reload, no external translate call.
+// The Arabic text comes from DICT, which is the static UI_AR table below
+// merged with every stored data/i18n/<profileKey>.json (see
+// scripts/lib/i18n.js and scripts/translate.js). Falls back to the English
+// text when a translation hasn't been generated yet, so the page never
+// renders blank while translations are still catching up.
+function bi(text) {
+  const en = text == null ? '' : String(text).trim();
+  if (!en) return '';
+  const ar = DICT[en];
+  return `<span data-i18n-en>${esc(en)}</span><span data-i18n-ar dir="rtl">${esc(ar || en)}</span>`;
 }
 
 function initials(name) {
@@ -46,11 +69,12 @@ function themeAttrs(rawTheme) {
   return ` data-theme="${esc(slug)}"${style}`;
 }
 
-// Small EN/Arabic switcher in the topbar. It drives Google's Website
-// Translator behind the scenes (see the widget + initLangSwitch() in
-// site.js) rather than us maintaining separate translated copies of every
-// profile — the actual toggle logic lives in site.js since it just flips a
-// cookie and reloads.
+// Small EN/Arabic switcher in the topbar. Every page ships both languages
+// already baked in (see bi() above); this just flips which one is visible
+// (initLangSwitch() in site.js), instantly and with no network call. Every
+// page also carries a tiny inline script, right after <meta charset>, that
+// applies the saved choice before first paint so there's no EN-then-AR
+// flash on load.
 function langSwitch() {
   return `
     <div class="lang-switch" data-lang-switch>
@@ -59,17 +83,66 @@ function langSwitch() {
     </div>`;
 }
 
-// Loads Google's Website Translator engine (invisibly — see the CSS that
-// hides its default widget UI) so the EN/AR buttons above have something to
-// drive. Included once per page, right before the closing </body>.
-const TRANSLATE_WIDGET = `
-  <div id="google_translate_element"></div>
-  <script>
-    function googleTranslateElementInit() {
-      new google.translate.TranslateElement({ pageLanguage: 'en', includedLanguages: 'ar', autoDisplay: false }, 'google_translate_element');
-    }
-  </script>
-  <script src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>`;
+// Reads the visitor's saved language (site.js writes it to localStorage)
+// and sets it on <html> immediately, before the rest of the page paints.
+const LANG_PREINIT = `<script>(function(){try{if(localStorage.getItem('siteLang')==='ar'){var h=document.documentElement;h.setAttribute('data-lang','ar');h.setAttribute('dir','rtl');h.setAttribute('lang','ar');}}catch(e){}})();</script>`;
+
+// Static, hand-written translations for the chrome around the data — section
+// headings, buttons, labels — that's identical on every page and doesn't
+// need the per-profile translation pipeline in scripts/translate.js. Keyed
+// by the exact English string used at each call site below.
+const UI_AR = {
+  'Profile Directory': 'دليل الملفات الشخصية',
+  'Find a tutor or professional': 'اطلب معلمًا أو متخصصًا',
+  'Browse profiles with videos, certificates, experience and contact details.': 'تصفح الملفات الشخصية بالفيديوهات والشهادات والخبرات وبيانات التواصل.',
+  'Search by name or title…': 'ابحث بالاسم أو المسمى الوظيفي…',
+  'No profiles match that search.': 'لا توجد ملفات مطابقة لهذا البحث.',
+  'Generated': 'تاريخ الإنشاء',
+  'Featured tutor': 'معلم مميز',
+  'Featured professional': 'متخصص مميز',
+  'Year experience': 'سنة خبرة',
+  'Years experience': 'سنوات خبرة',
+  'Specializations': 'التخصصات',
+  'Areas of expertise': 'مجالات الخبرة',
+  'Areas of Expertise': 'مجالات الخبرة',
+  'Language': 'لغة',
+  'Languages': 'اللغات',
+  'Certificate': 'شهادة',
+  'Certificates': 'الشهادات',
+  'Teaching Profile': 'الملف التدريسي',
+  'Age Groups': 'الفئات العمرية',
+  'Levels': 'المستويات',
+  'Format': 'طريقة التدريس',
+  'Teaching Experience': 'الخبرة التدريسية',
+  'Teaching Philosophy': 'فلسفة التدريس',
+  'Videos': 'مقاطع الفيديو',
+  'Technical Skills': 'المهارات التقنية',
+  'Contact': 'التواصل',
+  'Professional Overview': 'نبذة مهنية',
+  'Work Experience': 'الخبرة العملية',
+  'Projects & Portfolio': 'المشاريع وأعمال سابقة',
+  'Education & Qualifications': 'التعليم والمؤهلات',
+  'Software & Tools': 'البرامج والأدوات',
+  'Get in touch': 'تواصل معي',
+  'Message on WhatsApp': 'راسلني على واتساب',
+  'Message on Telegram': 'راسلني على تيليجرام',
+  'Call': 'اتصل بي',
+  'Email': 'البريد الإلكتروني',
+  'WhatsApp': 'واتساب',
+  'Phone': 'الهاتف',
+  'Telegram': 'تيليجرام',
+  'Facebook': 'فيسبوك',
+  'Instagram': 'إنستجرام',
+  'LinkedIn': 'لينكدإن',
+  'GitHub': 'جيت هاب',
+  'Website': 'الموقع الإلكتروني',
+  'View certificate': 'عرض الشهادة',
+  'Certificate not showing? ': 'الشهادة لا تظهر؟ ',
+  'Open it in a new tab': 'افتحها في تبويب جديد',
+  'Close': 'إغلاق',
+  'years of teaching experience.': 'سنوات من الخبرة في التدريس.',
+  'years of professional experience.': 'سنوات من الخبرة المهنية.',
+};
 
 // ---------------------------------------------------------------------------
 // Directory page
@@ -77,21 +150,24 @@ const TRANSLATE_WIDGET = `
 
 function tutorCard(t) {
   const tags = (t.tags || []).slice(0, 4);
+  // Search haystack carries both languages so typing in either still
+  // matches, regardless of which one is currently shown.
+  const haystackAr = [t.title, ...tags].filter(Boolean).map((s) => DICT[s]).filter(Boolean).join(' ');
 
   return `
   <a href="p/${esc(t.profileKey)}/" class="tutor-card${t.featured ? ' featured' : ''}"${themeAttrs(t.theme)}
-     data-tutor-card data-name="${esc(t.name)}" data-title="${esc(t.title || '')} ${esc(tags.join(' '))} ${esc(t.location || '')}">
+     data-tutor-card data-name="${esc(t.name)}" data-title="${esc(t.title || '')} ${esc(tags.join(' '))} ${esc(t.location || '')} ${esc(haystackAr)}">
     <div class="card-top">
       ${avatarHtml(t.photo, t.name, 'avatar')}
       <div>
         <h3>${esc(t.name)}</h3>
-        ${t.title ? `<p class="title">${esc(t.title)}</p>` : ''}
+        ${t.title ? `<p class="title">${bi(t.title)}</p>` : ''}
         ${t.location ? `<p class="title">${esc(t.location)}</p>` : ''}
       </div>
     </div>
-    ${t.featured ? `<span class="featured-mark">Featured ${t.kind === 'professional' ? 'professional' : 'tutor'}</span>` : ''}
-    ${t.summary ? `<p class="summary">${esc(t.summary)}</p>` : ''}
-    ${tags.length ? `<div class="tag-row">${tags.map((tag) => `<span class="tag">${esc(tag)}</span>`).join('')}</div>` : ''}
+    ${t.featured ? `<span class="featured-mark">${bi(t.kind === 'professional' ? 'Featured professional' : 'Featured tutor')}</span>` : ''}
+    ${t.summary ? `<p class="summary">${bi(t.summary)}</p>` : ''}
+    ${tags.length ? `<div class="tag-row">${tags.map((tag) => `<span class="tag">${bi(tag)}</span>`).join('')}</div>` : ''}
   </a>`;
 }
 
@@ -101,6 +177,7 @@ function renderDirectory(directory) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+${LANG_PREINIT}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Profile Directory</title>
 <link rel="stylesheet" href="assets/styles.css">
@@ -108,33 +185,32 @@ function renderDirectory(directory) {
 <body data-theme="emerald">
   <header class="topbar">
     <div class="container">
-      <a class="brand" href="./">Profile Directory</a>
+      <a class="brand" href="./">${bi('Profile Directory')}</a>
       ${langSwitch()}
     </div>
   </header>
 
   <div class="container">
     <div class="directory-header">
-      <h1>Find a tutor or professional</h1>
-      <p>Browse profiles with videos, certificates, experience and contact details.</p>
+      <h1>${bi('Find a tutor or professional')}</h1>
+      <p>${bi('Browse profiles with videos, certificates, experience and contact details.')}</p>
     </div>
 
     <div class="search-row">
-      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input aria-label="Search tutors by name or title">
-      <div class="search-count" data-search-count>${sorted.length} profile${sorted.length === 1 ? '' : 's'}</div>
+      <input class="search-input" type="text" placeholder="Search by name or title…" data-search-input data-i18n-placeholder-ar="${esc(DICT['Search by name or title…'] || 'ابحث بالاسم أو المسمى الوظيفي…')}" aria-label="Search tutors by name or title">
+      <div class="search-count" data-search-count>${sorted.length} <span data-i18n-en>profile${sorted.length === 1 ? '' : 's'}</span><span data-i18n-ar dir="rtl">ملف${sorted.length === 1 ? '' : 'ات'}</span></div>
     </div>
 
     <div class="tutor-grid">
       ${sorted.map(tutorCard).join('\n')}
     </div>
     <div class="empty-state" data-empty-state style="display:none;">
-      No profiles match that search.
+      ${bi('No profiles match that search.')}
     </div>
   </div>
 
-  <footer class="site-footer">Generated ${esc(directory.generatedAt)}</footer>
+  <footer class="site-footer">${bi('Generated')} ${esc(directory.generatedAt)}</footer>
   <script src="assets/site.js"></script>
-  ${TRANSLATE_WIDGET}
 </body>
 </html>`;
 }
@@ -175,7 +251,7 @@ function contactChips(contacts) {
   ];
   const chips = map
     .filter(([key]) => contacts[key])
-    .map(([key, hrefFn, label]) => `<a class="contact-chip" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key]}<span>${label}</span></a>`);
+    .map(([key, hrefFn, label]) => `<a class="contact-chip" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key]}<span>${bi(label)}</span></a>`);
   if (!chips.length) return '';
   return `<div class="contact-row">${chips.join('')}</div>`;
 }
@@ -191,13 +267,13 @@ function teachingProfileSection(teaching) {
 
   return `
   <section class="profile-section">
-    <h2>Teaching Profile</h2>
+    <h2>${bi('Teaching Profile')}</h2>
     ${groups.map(([label, list]) => `
     <div class="teaching-group">
-      <h3 class="group-label">${esc(label)}</h3>
-      <div class="pill-list">${list.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div>
+      <h3 class="group-label">${bi(label)}</h3>
+      <div class="pill-list">${list.map((x) => `<span class="pill">${bi(x)}</span>`).join('')}</div>
     </div>`).join('')}
-    ${teaching.availability ? `<p style="margin-top:16px;">${esc(teaching.availability)}</p>` : ''}
+    ${teaching.availability ? `<p style="margin-top:16px;">${bi(teaching.availability)}</p>` : ''}
   </section>`;
 }
 
@@ -205,9 +281,9 @@ function experienceSection(teaching) {
   if (!teaching.experienceYears && !teaching.experienceDescription) return '';
   return `
   <section class="profile-section">
-    <h2>Teaching Experience</h2>
-    ${teaching.experienceYears ? `<p><strong>${esc(teaching.experienceYears)} years</strong> of teaching experience.</p>` : ''}
-    ${teaching.experienceDescription ? `<p>${esc(teaching.experienceDescription)}</p>` : ''}
+    <h2>${bi('Teaching Experience')}</h2>
+    ${teaching.experienceYears ? `<p><strong>${esc(teaching.experienceYears)}</strong> ${bi('years of teaching experience.')}</p>` : ''}
+    ${teaching.experienceDescription ? `<p>${bi(teaching.experienceDescription)}</p>` : ''}
   </section>`;
 }
 
@@ -215,8 +291,8 @@ function philosophySection(teaching) {
   if (!teaching.philosophy) return '';
   return `
   <section class="profile-section">
-    <h2>Teaching Philosophy</h2>
-    <p class="philosophy-quote">${esc(teaching.philosophy)}</p>
+    <h2>${bi('Teaching Philosophy')}</h2>
+    <p class="philosophy-quote">${bi(teaching.philosophy)}</p>
   </section>`;
 }
 
@@ -224,9 +300,9 @@ function languagesSection(languages) {
   if (!languages || !languages.length) return '';
   return `
   <section class="profile-section">
-    <h2>Languages</h2>
+    <h2>${bi('Languages')}</h2>
     <ul class="lang-list">
-      ${languages.map((l) => `<li><span>${esc(l.language)}</span>${l.proficiency ? `<span class="level">${esc(l.proficiency)}</span>` : ''}</li>`).join('')}
+      ${languages.map((l) => `<li><span>${esc(l.language)}</span>${l.proficiency ? `<span class="level">${bi(l.proficiency)}</span>` : ''}</li>`).join('')}
     </ul>
   </section>`;
 }
@@ -235,7 +311,7 @@ function skillsSection(skills) {
   if (!skills || !skills.length) return '';
   return `
   <section class="profile-section">
-    <h2>Technical Skills</h2>
+    <h2>${bi('Technical Skills')}</h2>
     <div class="pill-list">${skills.map((s) => `<span class="pill">${esc(s)}</span>`).join('')}</div>
   </section>`;
 }
@@ -244,13 +320,13 @@ function videosSection(videos) {
   if (!videos || !videos.length) return '';
   return `
   <section class="profile-section">
-    <h2>Videos</h2>
+    <h2>${bi('Videos')}</h2>
     <div class="video-grid">
       ${videos.map((v) => `
       <div class="video-item">
         <div class="frame" data-provider="${esc(v.provider || '')}"><iframe src="${esc(v.embedUrl)}" title="${esc(v.title)}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>
-        <h3>${esc(v.title)}</h3>
-        ${v.description ? `<p>${esc(v.description)}</p>` : ''}
+        <h3>${bi(v.title)}</h3>
+        ${v.description ? `<p>${bi(v.description)}</p>` : ''}
       </div>`).join('')}
     </div>
   </section>`;
@@ -267,14 +343,14 @@ function certificatesSection(certificates) {
         <h3>${esc(c.name)}</h3>
         ${c.organization ? `<p class="org">${esc(c.organization)}</p>` : ''}
         ${c.date ? `<p class="date">${esc(c.date)}</p>` : ''}
-        ${hasFile ? '<p class="view-hint">View certificate</p>' : ''}
+        ${hasFile ? `<p class="view-hint">${bi('View certificate')}</p>` : ''}
       </button>
     `;
   }).join('');
 
   return `
   <section class="profile-section">
-    <h2>Certificates</h2>
+    <h2>${bi('Certificates')}</h2>
     <div class="cert-grid" data-cert-section>
       ${cards}
     </div>
@@ -296,7 +372,7 @@ function contactSection(contacts) {
   if (!chips) return '';
   return `
   <section class="profile-section">
-    <h2>Contact</h2>
+    <h2>${bi('Contact')}</h2>
     ${chips}
   </section>`;
 }
@@ -328,7 +404,7 @@ function quickFacts(t) {
   if (!facts.length) return '';
   return `
       <div class="stat-row">
-        ${facts.slice(0, 4).map(([value, label]) => `<div class="stat-card"><div class="stat-value">${esc(value)}</div><div class="stat-label">${esc(label)}</div></div>`).join('')}
+        ${facts.slice(0, 4).map(([value, label]) => `<div class="stat-card"><div class="stat-value">${esc(value)}</div><div class="stat-label">${bi(label)}</div></div>`).join('')}
       </div>`;
 }
 
@@ -346,15 +422,15 @@ function primaryCta(contacts) {
   const hit = order.find(([key]) => contacts[key]);
   if (!hit) return '';
   const [key, hrefFn, label] = hit;
-  return `<a class="cta-button" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key] || ''}<span>${esc(label)}</span></a>`;
+  return `<a class="cta-button" href="${esc(hrefFn(contacts[key]))}" target="_blank" rel="noopener">${CONTACT_ICONS[key] || ''}<span>${bi(label)}</span></a>`;
 }
 
 function pillSection(heading, items) {
   if (!items || !items.length) return '';
   return `
   <section class="profile-section">
-    <h2>${esc(heading)}</h2>
-    <div class="pill-list">${items.map((x) => `<span class="pill">${esc(x)}</span>`).join('')}</div>
+    <h2>${bi(heading)}</h2>
+    <div class="pill-list">${items.map((x) => `<span class="pill">${bi(x)}</span>`).join('')}</div>
   </section>`;
 }
 
@@ -363,9 +439,9 @@ function professionalOverviewSection(p) {
   if (!pro.experienceYears && !pro.experienceSummary) return '';
   return `
   <section class="profile-section">
-    <h2>Professional Overview</h2>
-    ${pro.experienceYears ? `<p><strong>${esc(pro.experienceYears)} years</strong> of professional experience.</p>` : ''}
-    ${pro.experienceSummary ? `<p>${esc(pro.experienceSummary)}</p>` : ''}
+    <h2>${bi('Professional Overview')}</h2>
+    ${pro.experienceYears ? `<p><strong>${esc(pro.experienceYears)}</strong> ${bi('years of professional experience.')}</p>` : ''}
+    ${pro.experienceSummary ? `<p>${bi(pro.experienceSummary)}</p>` : ''}
   </section>`;
 }
 
@@ -374,12 +450,12 @@ function workExperienceSection(pro) {
   if (!items.length) return '';
   return `
   <section class="profile-section">
-    <h2>Work Experience</h2>
+    <h2>${bi('Work Experience')}</h2>
     ${items.map((w) => `
     <div class="entry">
-      ${w.position ? `<h3>${esc(w.position)}</h3>` : ''}
-      ${(w.organization || w.period) ? `<p class="entry-meta">${w.organization ? `<span class="entry-org">${esc(w.organization)}</span>` : ''}${w.organization && w.period ? ' · ' : ''}${w.period ? esc(w.period) : ''}</p>` : ''}
-      ${w.description ? `<p class="entry-desc">${esc(w.description)}</p>` : ''}
+      ${w.position ? `<h3>${bi(w.position)}</h3>` : ''}
+      ${(w.organization || w.period) ? `<p class="entry-meta">${w.organization ? `<span class="entry-org">${esc(w.organization)}</span>` : ''}${w.organization && w.period ? ' · ' : ''}${w.period ? bi(w.period) : ''}</p>` : ''}
+      ${w.description ? `<p class="entry-desc">${bi(w.description)}</p>` : ''}
     </div>`).join('')}
   </section>`;
 }
@@ -389,12 +465,12 @@ function projectsSection(pro) {
   if (!items.length) return '';
   return `
   <section class="profile-section">
-    <h2>Projects &amp; Portfolio</h2>
+    <h2>${bi('Projects & Portfolio')}</h2>
     <div class="project-grid">
       ${items.map((x) => `
       <div class="project-card">
-        ${x.name ? `<h3>${esc(x.name)}</h3>` : ''}
-        ${x.description ? `<p>${esc(x.description)}</p>` : ''}
+        ${x.name ? `<h3>${bi(x.name)}</h3>` : ''}
+        ${x.description ? `<p>${bi(x.description)}</p>` : ''}
       </div>`).join('')}
     </div>
   </section>`;
@@ -407,13 +483,13 @@ function educationSection(edu) {
   if (!hasMain && !extra.length) return '';
   return `
   <section class="profile-section">
-    <h2>Education &amp; Qualifications</h2>
+    <h2>${bi('Education & Qualifications')}</h2>
     ${hasMain ? `
     <div class="edu-block">
-      ${edu.qualification ? `<h3>${esc(edu.qualification)}</h3>` : ''}
+      ${edu.qualification ? `<h3>${bi(edu.qualification)}</h3>` : ''}
       ${(edu.institution || edu.graduationYear) ? `<p class="entry-meta">${edu.institution ? `<span class="entry-org">${esc(edu.institution)}</span>` : ''}${edu.institution && edu.graduationYear ? ' · ' : ''}${edu.graduationYear ? esc(edu.graduationYear) : ''}</p>` : ''}
     </div>` : ''}
-    ${extra.length ? `<ul class="plain-list">${extra.map((x) => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    ${extra.length ? `<ul class="plain-list">${extra.map((x) => `<li>${bi(x)}</li>`).join('')}</ul>` : ''}
   </section>`;
 }
 
@@ -422,6 +498,7 @@ function renderProfile(t) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+${LANG_PREINIT}
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(t.personal.name)}${t.personal.title ? ' — ' + esc(t.personal.title) : ''}</title>
 <link rel="stylesheet" href="../../assets/styles.css">
@@ -429,7 +506,7 @@ function renderProfile(t) {
 <body class="profile-body"${themeAttrs(t.personal.theme)}>
   <header class="topbar">
     <div class="container">
-      <a class="brand" href="../../">Profile Directory</a>
+      <a class="brand" href="../../">${bi('Profile Directory')}</a>
       ${langSwitch()}
     </div>
   </header>
@@ -437,16 +514,16 @@ function renderProfile(t) {
   <div class="profile-wrap">
     <div class="profile-header">
       <div class="profile-cover">
-        ${t.featured ? `<span class="cover-ribbon">★ Featured ${t.kind === 'professional' ? 'professional' : 'tutor'}</span>` : ''}
+        ${t.featured ? `<span class="cover-ribbon">★ ${bi(t.kind === 'professional' ? 'Featured professional' : 'Featured tutor')}</span>` : ''}
       </div>
       <div class="photo-frame">
         ${CORNER_ORNAMENT_SVG}
         ${avatarHtml(t.personal.photo, t.personal.name, 'avatar')}
       </div>
       <h1>${esc(t.personal.name)}</h1>
-      ${t.personal.title ? `<p class="title">${esc(t.personal.title)}</p>` : ''}
+      ${t.personal.title ? `<p class="title">${bi(t.personal.title)}</p>` : ''}
       ${metaLine(t)}
-      ${t.personal.summary ? `<p class="summary">${esc(t.personal.summary)}</p>` : ''}
+      ${t.personal.summary ? `<p class="summary">${bi(t.personal.summary)}</p>` : ''}
       ${quickFacts(t)}
       ${primaryCta(t.contacts)}
     </div>
@@ -473,9 +550,8 @@ function renderProfile(t) {
     ${contactSection(t.contacts)}
   </div>
 
-  <footer class="site-footer">${esc(t.personal.name)} — Profile Directory</footer>
+  <footer class="site-footer">${esc(t.personal.name)} — ${bi('Profile Directory')}</footer>
   <script src="../../assets/site.js"></script>
-  ${TRANSLATE_WIDGET}
 </body>
 </html>`;
 }
@@ -484,15 +560,28 @@ function renderProfile(t) {
 // main
 // ---------------------------------------------------------------------------
 
-function main() {
-  if (!fs.existsSync(DATA_INDEX)) {
-    console.error('Missing data/index.json — run scripts/sync.js first.');
-    process.exit(1);
+function loadIndex() {
+  if (!fs.existsSync(DATA_INDEX)) return null;
+  return JSON.parse(fs.readFileSync(DATA_INDEX, 'utf8'));
+}
+
+function loadProfile(profileKey) {
+  const file = path.join(DATA_PROFILES_DIR, `${profileKey}.json`);
+  if (!fs.existsSync(file)) return null;
+  return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+// Rebuilds every page. Used by the CLI entry point below, and safe to call
+// after any bulk change (a fresh sync.js run, a new scripts/translate.js
+// pass, etc).
+function buildSite() {
+  const directory = loadIndex();
+  if (!directory) {
+    throw new Error('Missing data/index.json — run scripts/sync.js first.');
   }
+  DICT = loadDictionary(UI_AR);
 
   fs.mkdirSync(PROFILES_OUT_DIR, { recursive: true });
-
-  const directory = JSON.parse(fs.readFileSync(DATA_INDEX, 'utf8'));
   fs.writeFileSync(path.join(SITE_DIR, 'index.html'), renderDirectory(directory));
 
   const files = fs.readdirSync(DATA_PROFILES_DIR).filter((f) => f.endsWith('.json'));
@@ -505,7 +594,30 @@ function main() {
     count++;
   }
 
-  console.log(`Built directory page + ${count} profile page(s) into ${SITE_DIR}`);
+  return count;
 }
 
-main();
+// Rebuilds just one profile page plus the directory page — used by the edit
+// backend (server/index.js) after a logged-in user saves a change, so a
+// save doesn't have to re-render the whole site. `profile` is the already
+// up-to-date profile object (server/index.js writes it to
+// data/profiles/<key>.json first, then calls this).
+function buildOneProfile(profile) {
+  DICT = loadDictionary(UI_AR);
+  fs.mkdirSync(PROFILES_OUT_DIR, { recursive: true });
+  const outDir = path.join(PROFILES_OUT_DIR, profile.profileKey);
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, 'index.html'), renderProfile(profile));
+
+  const directory = loadIndex();
+  if (directory) {
+    fs.writeFileSync(path.join(SITE_DIR, 'index.html'), renderDirectory(directory));
+  }
+}
+
+module.exports = { buildSite, buildOneProfile, renderProfile, renderDirectory, loadIndex, loadProfile };
+
+if (require.main === module) {
+  const count = buildSite();
+  console.log(`Built directory page + ${count} profile page(s) into ${SITE_DIR}`);
+}

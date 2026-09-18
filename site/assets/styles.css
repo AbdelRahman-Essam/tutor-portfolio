@@ -96,7 +96,9 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 .brand:hover { color: var(--accent); }
 
-/* ---------- Language toggle (see the Google Translate widget in site.js) ---------- */
+/* ---------- Language toggle (bilingual spans baked into the HTML by
+   build-site.js — see bi() there — toggled instantly client-side by
+   site.js; no external translate service involved) ---------- */
 .lang-switch {
   display: inline-flex;
   border: 1px solid var(--line-strong);
@@ -114,22 +116,20 @@ p { margin: 0 0 1em; max-width: 68ch; }
 }
 .lang-btn.active { background: var(--accent); color: var(--paper); }
 
-/* Hide Google's own translate UI — the toggle above drives it instead —
-   and undo the top-offset it injects on <body> for its banner frame. */
-#google_translate_element,
-.goog-te-banner-frame,
-.goog-te-gadget-icon { display: none !important; }
-body { top: 0 !important; }
-.goog-text-highlight { background: none !important; box-shadow: none !important; }
+/* Only one language's span is ever visible at a time. */
+[data-i18n-ar] { display: none; }
+html[data-lang="ar"] [data-i18n-en] { display: none; }
+html[data-lang="ar"] [data-i18n-ar] { display: inline; }
 
-/* Once the widget switches the page to Arabic it adds this class to <html>.
-   Flexbox already mirrors itself once `direction: rtl` is set — only the
-   few places using a physical left/right value (not logical start/end)
-   need an explicit flip here. */
-html.translated-rtl body { direction: rtl; }
-html.translated-rtl .tutor-card.featured { border-left: none; border-right: 3px solid var(--accent); padding-left: 28px; padding-right: 25px; }
-html.translated-rtl .profile-header .summary { text-align: right; }
-html.translated-rtl .cover-ribbon { right: auto; left: 14px; }
+/* Once Arabic is active we set dir="rtl" on <html> ourselves (see
+   site.js). Flexbox already mirrors itself once `direction: rtl` is set —
+   only the few places using a physical left/right value (not logical
+   start/end) need an explicit flip here. */
+html[dir="rtl"] body { direction: rtl; }
+html[dir="rtl"] .tutor-card.featured { border-left: none; border-right: 3px solid var(--accent); padding-left: 28px; padding-right: 25px; }
+html[dir="rtl"] .profile-header .summary { text-align: right; }
+html[dir="rtl"] .cover-ribbon { right: auto; left: 14px; }
+html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahoma, sans-serif; }
 
 /* ---------- Directory ---------- */
 .directory-header {

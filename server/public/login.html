@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Log in — Profile Directory</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<style>
+  .auth-wrap { max-width: 380px; margin: 90px auto; padding: 0 20px; }
+  .auth-card { border: 1px solid var(--line-strong); border-radius: 14px; padding: 32px; background: var(--paper); }
+  .auth-card h1 { font-size: 1.35rem; margin: 0 0 6px; }
+  .auth-card p.sub { color: var(--ink-soft); margin: 0 0 24px; font-size: 0.92rem; }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 0.85rem; margin-bottom: 6px; color: var(--ink-soft); }
+  .field input { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid var(--line-strong); border-radius: 8px; font: inherit; }
+  .auth-submit { width: 100%; padding: 11px; border: 0; border-radius: 8px; background: var(--accent); color: var(--paper); font: inherit; font-weight: 600; cursor: pointer; }
+  .auth-submit:disabled { opacity: 0.6; cursor: default; }
+  .auth-error { color: #b3261e; font-size: 0.88rem; margin: 0 0 16px; min-height: 1.2em; }
+</style>
+</head>
+<body data-theme="emerald">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <h1>Log in</h1>
+      <p class="sub">Sign in to edit your own profile page.</p>
+      <p class="auth-error" id="error" role="alert"></p>
+      <form id="login-form">
+        <div class="field">
+          <label for="username">Username</label>
+          <input id="username" name="username" type="text" autocomplete="username" required>
+        </div>
+        <div class="field">
+          <label for="password">Password</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required>
+        </div>
+        <button class="auth-submit" type="submit">Log in</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const form = document.getElementById('login-form');
+    const errorEl = document.getElementById('error');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorEl.textContent = '';
+      const submitBtn = form.querySelector('button');
+      submitBtn.disabled = true;
+      try {
+        const res = await fetch('/api/login', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({
+            username: document.getElementById('username').value,
+            password: document.getElementById('password').value,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          errorEl.textContent = data.error || 'Could not log in.';
+          submitBtn.disabled = false;
+          return;
+        }
+        window.location.href = '/edit';
+      } catch (err) {
+        errorEl.textContent = 'Network error — please try again.';
+        submitBtn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

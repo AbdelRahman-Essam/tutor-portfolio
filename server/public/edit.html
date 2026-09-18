@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edit your profile</title>
+<link rel="stylesheet" href="/assets/styles.css">
+<link rel="stylesheet" href="/edit/edit.css">
+</head>
+<body data-theme="emerald">
+  <header class="topbar">
+    <div class="container">
+      <a class="brand" href="/">Profile Directory</a>
+      <div class="edit-topbar-right">
+        <span id="whoami"></span>
+        <a href="#" id="view-live-link" target="_blank" rel="noopener" style="display:none;">View live page ↗</a>
+        <button type="button" id="logout-btn" class="ghost-btn">Log out</button>
+      </div>
+    </div>
+  </header>
+
+  <div class="container edit-wrap">
+    <h1>Edit your profile</h1>
+    <p class="sub">Changes save straight to your live page. Fields left blank are cleared; leave a field as-is to keep it unchanged.</p>
+    <p id="banner" class="banner" role="status" style="display:none;"></p>
+
+    <form id="profile-form">
+
+      <section class="edit-section">
+        <h2>Basics</h2>
+        <div class="field"><label>Full name</label><input name="personal.name" type="text"></div>
+        <div class="field"><label>Title / headline</label><input name="personal.title" type="text"></div>
+        <div class="field"><label>Summary</label><textarea name="personal.summary" rows="4"></textarea></div>
+        <div class="field" id="specialization-field"><label>Specialization (professional only)</label><input name="personal.specialization" type="text"></div>
+        <div class="field"><label>Location</label><input name="personal.location" type="text"></div>
+        <div class="field">
+          <label>Theme color</label>
+          <select name="personal.theme">
+            <option value="emerald">Emerald</option>
+            <option value="sand">Sand</option>
+            <option value="purple">Purple</option>
+            <option value="ocean">Ocean</option>
+            <option value="rose">Rose</option>
+            <option value="slate">Slate</option>
+            <option value="dark">Dark</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Photo — paste a Google Drive share link to replace it (leave blank to keep the current photo)</label>
+          <input name="personal.photoUrl" type="text" placeholder="https://drive.google.com/file/d/...">
+        </div>
+      </section>
+
+      <section class="edit-section" data-kind="tutor">
+        <h2>Teaching profile</h2>
+        <div class="field"><label>Specializations (comma-separated)</label><input name="teaching.specializations" type="text"></div>
+        <div class="field"><label>Age groups (comma-separated)</label><input name="teaching.ageGroups" type="text"></div>
+        <div class="field"><label>Levels (comma-separated)</label><input name="teaching.levels" type="text"></div>
+        <div class="field"><label>Format (comma-separated)</label><input name="teaching.format" type="text"></div>
+        <div class="field"><label>Availability</label><input name="teaching.availability" type="text"></div>
+        <div class="field"><label>Years of experience</label><input name="teaching.experienceYears" type="text" style="max-width:120px;"></div>
+        <div class="field"><label>Experience description</label><textarea name="teaching.experienceDescription" rows="3"></textarea></div>
+        <div class="field"><label>Teaching philosophy</label><textarea name="teaching.philosophy" rows="3"></textarea></div>
+        <div class="field"><label>Technical skills (comma-separated)</label><input name="skills" type="text"></div>
+      </section>
+
+      <section class="edit-section" data-kind="professional">
+        <h2>Professional overview</h2>
+        <div class="field"><label>Years of experience</label><input name="professional.experienceYears" type="text" style="max-width:120px;"></div>
+        <div class="field"><label>Experience summary</label><textarea name="professional.experienceSummary" rows="3"></textarea></div>
+        <div class="field"><label>Areas of expertise (comma-separated)</label><input name="professional.expertise" type="text"></div>
+        <div class="field"><label>Software &amp; tools (comma-separated)</label><input name="professional.tools" type="text"></div>
+
+        <h3 class="subhead">Work experience</h3>
+        <div id="work-experience-rows" class="repeat-rows"></div>
+        <button type="button" class="add-row-btn" data-add="work-experience-rows" data-template="work-experience">+ Add work experience</button>
+
+        <h3 class="subhead">Projects &amp; portfolio</h3>
+        <div id="projects-rows" class="repeat-rows"></div>
+        <button type="button" class="add-row-btn" data-add="projects-rows" data-template="projects">+ Add project</button>
+      </section>
+
+      <section class="edit-section">
+        <h2>Education &amp; qualifications</h2>
+        <div class="field"><label>Qualification</label><input name="education.qualification" type="text"></div>
+        <div class="field"><label>Institution</label><input name="education.institution" type="text"></div>
+        <div class="field"><label>Graduation year</label><input name="education.graduationYear" type="text" style="max-width:120px;"></div>
+        <div class="field"><label>Additional notes (comma-separated)</label><input name="education.additional" type="text"></div>
+      </section>
+
+      <section class="edit-section">
+        <h2>Languages</h2>
+        <div id="languages-rows" class="repeat-rows"></div>
+        <button type="button" class="add-row-btn" data-add="languages-rows" data-template="languages">+ Add language</button>
+      </section>
+
+      <section class="edit-section">
+        <h2>Videos</h2>
+        <p class="hint">To change a video's link, paste a new YouTube or Google Drive file URL. Leave the link field blank to keep the video's current file.</p>
+        <div id="videos-rows" class="repeat-rows"></div>
+        <button type="button" class="add-row-btn" data-add="videos-rows" data-template="videos">+ Add video</button>
+      </section>
+
+      <section class="edit-section">
+        <h2>Certificates</h2>
+        <p class="hint">To change a certificate's file, paste a new Google Drive file URL. Leave the link field blank to keep the certificate's current file.</p>
+        <div id="certificates-rows" class="repeat-rows"></div>
+        <button type="button" class="add-row-btn" data-add="certificates-rows" data-template="certificates">+ Add certificate</button>
+      </section>
+
+      <section class="edit-section">
+        <h2>Contact</h2>
+        <div class="field"><label>Email</label><input name="contacts.email" type="text"></div>
+        <div class="field"><label>WhatsApp (with country code)</label><input name="contacts.whatsapp" type="text"></div>
+        <div class="field"><label>Phone</label><input name="contacts.phone" type="text"></div>
+        <div class="field"><label>Telegram (@handle)</label><input name="contacts.telegram" type="text"></div>
+        <div class="field"><label>Facebook URL</label><input name="contacts.facebook" type="text"></div>
+        <div class="field"><label>Instagram URL</label><input name="contacts.instagram" type="text"></div>
+        <div class="field"><label>LinkedIn URL</label><input name="contacts.linkedin" type="text"></div>
+        <div class="field"><label>GitHub URL</label><input name="contacts.github" type="text"></div>
+        <div class="field"><label>Website URL</label><input name="contacts.website" type="text"></div>
+      </section>
+
+      <div class="save-row">
+        <button type="submit" class="auth-submit" id="save-btn">Save changes</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- Row templates for repeatable sections, cloned by edit.js -->
+  <template id="tpl-work-experience">
+    <div class="repeat-row">
+      <div class="field"><label>Position</label><input data-field="position" type="text"></div>
+      <div class="field"><label>Organization</label><input data-field="organization" type="text"></div>
+      <div class="field"><label>Period (e.g. 2021 – 2023)</label><input data-field="period" type="text"></div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>
+      <button type="button" class="remove-row-btn">Remove</button>
+    </div>
+  </template>
+
+  <template id="tpl-projects">
+    <div class="repeat-row">
+      <div class="field"><label>Project name</label><input data-field="name" type="text"></div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>
+      <button type="button" class="remove-row-btn">Remove</button>
+    </div>
+  </template>
+
+  <template id="tpl-languages">
+    <div class="repeat-row inline-row">
+      <div class="field"><label>Language</label><input data-field="language" type="text"></div>
+      <div class="field"><label>Proficiency</label><input data-field="proficiency" type="text" placeholder="Native, Fluent, Intermediate…"></div>
+      <button type="button" class="remove-row-btn">Remove</button>
+    </div>
+  </template>
+
+  <template id="tpl-videos">
+    <div class="repeat-row">
+      <div class="field"><label>Title</label><input data-field="title" type="text"></div>
+      <div class="field"><label>Type</label><input data-field="type" type="text" placeholder="Introduction / About Me"></div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>
+      <div class="field"><label>New link (optional)</label><input data-field="url" type="text" placeholder="YouTube or Google Drive file URL"></div>
+      <button type="button" class="remove-row-btn">Remove</button>
+    </div>
+  </template>
+
+  <template id="tpl-certificates">
+    <div class="repeat-row">
+      <div class="field"><label>Name</label><input data-field="name" type="text"></div>
+      <div class="field"><label>Issuing organization</label><input data-field="organization" type="text"></div>
+      <div class="field"><label>Date</label><input data-field="date" type="text"></div>
+      <div class="field"><label>Description</label><textarea data-field="description" rows="2"></textarea></div>
+      <div class="field"><label>New file link (optional)</label><input data-field="url" type="text" placeholder="Google Drive file URL"></div>
+      <button type="button" class="remove-row-btn">Remove</button>
+    </div>
+  </template>
+
+  <script src="/edit/edit.js"></script>
+</body>
+</html>

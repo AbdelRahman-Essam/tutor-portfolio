@@ -85,31 +85,47 @@
 })();
 
 // ---------- Language toggle (Arabic translation) ----------
-// Drives Google's Website Translator (loaded invisibly — see the widget
-// markup and the CSS that hides its own UI) by setting the cookie it reads
-// on load, then reloading. The cookie is set with path=/ so the chosen
-// language carries across every page of the site, not just this one.
+// Every page ships both languages already baked in by build-site.js (see
+// bi() there and data/i18n/*.json, produced by scripts/translate.js) as
+// paired `[data-i18n-en]` / `[data-i18n-ar]` elements. This just flips
+// which one CSS shows, instantly, with no reload and no external service —
+// unlike the old Google Translate widget this replaced. The choice is
+// remembered in localStorage so it carries across pages; a tiny inline
+// script in <head> (see LANG_PREINIT in build-site.js) applies it before
+// first paint to avoid an EN-then-AR flash.
 (function initLangSwitch() {
   const buttons = document.querySelectorAll('[data-lang-btn]');
-  if (!buttons.length) return;
+  const searchInput = document.querySelector('[data-search-input]');
+  const searchInputEnPlaceholder = searchInput ? searchInput.getAttribute('placeholder') : null;
+  const searchInputArPlaceholder = searchInput ? searchInput.getAttribute('data-i18n-placeholder-ar') : null;
 
-  function currentLang() {
-    const m = document.cookie.match(/googtrans=\/en\/(\w+)/);
-    return m ? m[1] : 'en';
+  function apply(lang) {
+    const html = document.documentElement;
+    if (lang === 'ar') {
+      html.setAttribute('data-lang', 'ar');
+      html.setAttribute('dir', 'rtl');
+      html.setAttribute('lang', 'ar');
+      if (searchInput && searchInputArPlaceholder) searchInput.setAttribute('placeholder', searchInputArPlaceholder);
+    } else {
+      html.removeAttribute('data-lang');
+      html.setAttribute('dir', 'ltr');
+      html.setAttribute('lang', 'en');
+      if (searchInput && searchInputEnPlaceholder != null) searchInput.setAttribute('placeholder', searchInputEnPlaceholder);
+    }
+    buttons.forEach((btn) => btn.classList.toggle('active', btn.dataset.langBtn === lang));
   }
 
-  const active = currentLang();
+  if (!buttons.length) return;
+
+  let saved = 'en';
+  try { saved = localStorage.getItem('siteLang') || 'en'; } catch (e) { /* private mode etc. */ }
+  apply(saved);
+
   buttons.forEach((btn) => {
-    btn.classList.toggle('active', btn.dataset.langBtn === active);
     btn.addEventListener('click', () => {
       const lang = btn.dataset.langBtn;
-      if (lang === active) return;
-      if (lang === 'en') {
-        document.cookie = 'googtrans=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC';
-      } else {
-        document.cookie = `googtrans=/en/${lang}; path=/`;
-      }
-      location.reload();
+      apply(lang);
+      try { localStorage.setItem('siteLang', lang); } catch (e) { /* private mode etc. */ }
     });
   });
 })();
