@@ -11,26 +11,29 @@
   --line-strong: rgba(27, 22, 15, 0.24);
 
   --accent: #0E6B4F;
+  --accent-dark: #0A4E39;
   --accent-tint: #E4F0EA;
   /* derived, so every theme override of --accent flows through automatically */
   --accent-ink: var(--accent);
 
-  /* Portrait crop focus. Faces sit high in most photos, so bias upward
-     instead of dead-centre. Raise the 2nd value to show more of the body. */
-  --photo-focus: 50% 22%;
+  /* Portrait crop focus for the circular avatar. Most uploaded photos are
+     standing full-body shots, so bias sharply toward the top where the face
+     actually is rather than a dead-centre crop. Raise the 2nd number to show
+     more of the body, lower it to zoom in tighter on just the face. */
+  --photo-focus: 50% 12%;
 
   --radius: 3px;
   --content-width: 760px;
   --grid-width: 1120px;
 }
 
-[data-theme="emerald"]  { --accent: #0E6B4F; --accent-tint: #E4F0EA; }
+[data-theme="emerald"]  { --accent: #0E6B4F; --accent-dark: #0A4E39; --accent-tint: #E4F0EA; }
 [data-theme="deep-blue"],
-[data-theme="deepblue"] { --accent: #1E3A5F; --accent-tint: #E4EAF1; }
-[data-theme="teal"]     { --accent: #0B6E77; --accent-tint: #DFF0F1; }
-[data-theme="burgundy"] { --accent: #7A2333; --accent-tint: #F4E4E7; }
-[data-theme="sand"]     { --accent: #A9772F; --accent-tint: #F5ECDD; }
-[data-theme="purple"]   { --accent: #5B3170; --accent-tint: #EFE4F2; }
+[data-theme="deepblue"] { --accent: #1E3A5F; --accent-dark: #142842; --accent-tint: #E4EAF1; }
+[data-theme="teal"]     { --accent: #0B6E77; --accent-dark: #084F56; --accent-tint: #DFF0F1; }
+[data-theme="burgundy"] { --accent: #7A2333; --accent-dark: #591926; --accent-tint: #F4E4E7; }
+[data-theme="sand"]     { --accent: #A9772F; --accent-dark: #815B22; --accent-tint: #F5ECDD; }
+[data-theme="purple"]   { --accent: #5B3170; --accent-dark: #402350; --accent-tint: #EFE4F2; }
 [data-theme="dark"] {
   --paper: #14120F;
   --ink: #EDEAE2;
@@ -38,6 +41,7 @@
   --line: rgba(237, 234, 226, 0.16);
   --line-strong: rgba(237, 234, 226, 0.28);
   --accent: #C79A4B;
+  --accent-dark: #8F6C2E;
   --accent-tint: #2A2317;
 }
 
@@ -54,7 +58,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-a { color: var(--accent); transition: color 0.15s ease; }
+a { color: var(--accent); }
 a:focus-visible, button:focus-visible, input:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -92,44 +96,8 @@ p { margin: 0 0 1em; max-width: 68ch; }
   font-weight: 500;
   color: var(--ink);
   text-decoration: none;
-  transition: color 0.15s ease;
 }
 .brand:hover { color: var(--accent); }
-
-/* ---------- Language toggle (bilingual spans baked into the HTML by
-   build-site.js — see bi() there — toggled instantly client-side by
-   site.js; no external translate service involved) ---------- */
-.lang-switch {
-  display: inline-flex;
-  border: 1px solid var(--line-strong);
-  border-radius: 999px;
-  overflow: hidden;
-}
-.lang-btn {
-  font-family: inherit;
-  font-size: 0.82rem;
-  padding: 6px 14px;
-  border: 0;
-  background: transparent;
-  color: var(--ink-soft);
-  cursor: pointer;
-}
-.lang-btn.active { background: var(--accent); color: var(--paper); }
-
-/* Only one language's span is ever visible at a time. */
-[data-i18n-ar] { display: none; }
-html[data-lang="ar"] [data-i18n-en] { display: none; }
-html[data-lang="ar"] [data-i18n-ar] { display: inline; }
-
-/* Once Arabic is active we set dir="rtl" on <html> ourselves (see
-   site.js). Flexbox already mirrors itself once `direction: rtl` is set —
-   only the few places using a physical left/right value (not logical
-   start/end) need an explicit flip here. */
-html[dir="rtl"] body { direction: rtl; }
-html[dir="rtl"] .tutor-card.featured { border-left: none; border-right: 3px solid var(--accent); padding-left: 28px; padding-right: 25px; }
-html[dir="rtl"] .profile-header .summary { text-align: right; }
-html[dir="rtl"] .cover-ribbon { right: auto; left: 14px; }
-html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahoma, sans-serif; }
 
 /* ---------- Directory ---------- */
 .directory-header {
@@ -157,7 +125,6 @@ html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahom
   background: transparent;
   border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  transition: border-color 0.15s ease;
 }
 .search-input::placeholder { color: var(--ink-soft); }
 .search-input:focus { border-color: var(--accent); }
@@ -186,16 +153,18 @@ html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahom
 .tutor-card {
   background: var(--paper);
   padding: 28px;
+  padding-left: 25px;
+  border-left: 3px solid transparent;
   display: flex;
   flex-direction: column;
   gap: 12px;
   text-decoration: none;
   color: inherit;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 .tutor-card:hover {
-  box-shadow: inset 0 0 0 1px var(--accent);
-  transform: translateY(-1px);
+  background: var(--accent-tint);
+  border-left-color: var(--accent);
 }
 
 .tutor-card .card-top {
@@ -209,8 +178,7 @@ html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahom
   border-radius: 50%;
   object-fit: cover;
   object-position: var(--photo-focus);
-  background: var(--accent-tint);
-  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent-tint);
+  border: 1px solid var(--line-strong);
   flex-shrink: 0;
 }
 .tutor-card .avatar-fallback {
@@ -225,7 +193,7 @@ html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahom
   font-family: 'Fraunces', serif;
   font-size: 1.3rem;
   flex-shrink: 0;
-  box-shadow: 0 0 0 2px var(--paper), 0 0 0 3px var(--accent-tint);
+  border: 1px solid var(--line-strong);
 }
 .tutor-card h3 {
   font-size: 1.15rem;
@@ -254,21 +222,15 @@ html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahom
 .tag {
   font-size: 0.78rem;
   padding: 3px 9px;
-  border: 1px solid transparent;
+  border: 1px solid var(--line-strong);
   border-radius: 999px;
-  background: var(--accent-tint);
-  color: var(--accent-ink);
+  color: var(--ink-soft);
 }
-.tutor-card.featured { border-left: 3px solid var(--accent); padding-left: 25px; }
+.tutor-card.featured { background: var(--accent-tint); }
 .featured-mark {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 600;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: var(--accent-tint);
+  font-size: 0.75rem;
   color: var(--accent-ink);
-  width: fit-content;
+  font-weight: 600;
 }
 
 .empty-state {
@@ -281,63 +243,53 @@ html[dir="rtl"] [data-i18n-ar] { font-family: 'IBM Plex Sans', 'Segoe UI', Tahom
 .profile-wrap {
   max-width: var(--content-width);
   margin: 0 auto;
-  padding: 48px 24px 96px;
+  padding: 0 24px 96px;
 }
 
-/* The theme color is a reference accent, not a full-page wash: it shows up
-   in a thin top bar, headings, links, pills and borders — the page itself
-   stays on the same neutral paper as the directory, whatever the theme. */
-body.profile-body {
-  background: var(--paper);
+/* "Full theme": a real graded hero band (dark accent -> mid accent gradient)
+   carries the theme's color, rather than a flat wash over the whole page.
+   The rest of the page stays on plain paper, which reads calmer and more
+   professional than tinting everything the same pale color. */
+body.profile-body { background: var(--paper); }
+
+.hero-band {
+  width: 100%;
+  min-height: 96px;
+  background: linear-gradient(155deg, var(--accent-dark), var(--accent) 85%);
+  position: relative;
 }
-body.profile-body::before {
-  content: "";
+.hero-band .container {
+  display: flex;
+  justify-content: center;
+}
+
+.breadcrumb {
   display: block;
-  height: 4px;
-  background: var(--accent);
+  padding: 14px 0 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.85);
+  text-decoration: none;
 }
+.breadcrumb:hover { color: #fff; }
+[data-theme="dark"] .breadcrumb { color: rgba(20, 18, 14, 0.75); }
+[data-theme="dark"] .breadcrumb:hover { color: rgba(20, 18, 14, 0.95); }
 
 .profile-header {
   text-align: center;
-  padding-bottom: 40px;
+  padding: 0 0 40px;
   margin-bottom: 40px;
   border-bottom: 1px solid var(--line);
 }
 
-/* A colorful cover band in the profile's own accent color, with the photo
-   overlapping its bottom edge — gives the header some life without going
-   back to washing the whole page (see the accent-as-reference note above). */
-.profile-cover {
-  height: 120px;
-  border-radius: var(--radius);
-  background: linear-gradient(135deg, var(--accent) 0%, color-mix(in srgb, var(--accent) 45%, white) 100%);
-  position: relative;
-}
-.cover-ribbon {
-  position: absolute;
-  top: 14px;
-  right: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: var(--paper);
-  color: var(--accent-ink);
-}
-.profile-cover + .photo-frame { margin-top: -80px; }
-
 .photo-frame {
-  width: 200px;
-  height: 200px;
-  margin: 0 auto 20px;
+  width: 152px;
+  height: 152px;
+  margin: -76px auto 20px;
   position: relative;
   border-radius: 50%;
+  border: 5px solid var(--paper);
   background: var(--accent-tint);
   overflow: hidden;
-  box-shadow: 0 0 0 4px var(--paper), 0 0 0 7px var(--accent);
 }
 .photo-frame img {
   width: 100%;
@@ -357,15 +309,6 @@ body.profile-body::before {
   font-family: 'Fraunces', serif;
   font-size: 2.6rem;
 }
-/* The "whole photo, nothing cropped" alternative: add class="full" to
-   .photo-frame to switch to a rounded-square, letterboxed presentation
-   instead of the circular crop above. */
-.photo-frame.full {
-  border-radius: 6px;
-  box-shadow: none;
-  border: 1px solid var(--line-strong);
-}
-.photo-frame.full img { object-fit: contain; }
 
 .profile-header h1 {
   font-size: clamp(1.7rem, 3vw, 2.3rem);
@@ -380,49 +323,6 @@ body.profile-body::before {
   margin: 0 auto 24px;
   text-align: left;
 }
-
-/* Quick-facts: real numbers pulled straight from the profile's own data
-   (years of experience, language count, etc.) — a fast-scanning summary
-   instead of making the visitor read every section to get the basics. */
-.stat-row {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin: 0 0 24px;
-}
-.stat-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 12px 20px;
-  min-width: 100px;
-}
-.stat-card .stat-value {
-  font-family: 'Fraunces', serif;
-  font-size: 1.5rem;
-  color: var(--accent-ink);
-  line-height: 1.1;
-}
-.stat-card .stat-label {
-  font-size: 0.78rem;
-  color: var(--ink-soft);
-}
-
-.cta-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: var(--accent);
-  color: var(--paper);
-  padding: 12px 26px;
-  border-radius: 999px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 0.95rem;
-  margin-bottom: 8px;
-  transition: opacity 0.15s ease;
-}
-.cta-button:hover { opacity: 0.88; color: var(--paper); }
 
 .contact-row {
   display: flex;
@@ -440,10 +340,9 @@ body.profile-body::before {
   text-decoration: none;
   color: var(--ink);
   font-size: 0.92rem;
-  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
 }
 .contact-chip svg { flex-shrink: 0; color: var(--ink-soft); }
-.contact-chip:hover { border-color: var(--accent); background: var(--accent-tint); color: var(--accent-ink); }
+.contact-chip:hover { border-color: var(--accent); color: var(--accent-ink); }
 .contact-chip:hover svg { color: var(--accent-ink); }
 
 section.profile-section {
@@ -453,18 +352,7 @@ section.profile-section {
 section.profile-section:last-of-type { border-bottom: none; }
 section.profile-section h2 {
   font-size: 1.3rem;
-  margin: 0 0 16px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-section.profile-section h2::before {
-  content: "";
-  width: 9px;
-  height: 9px;
-  background: var(--accent);
-  border-radius: 2px;
-  flex-shrink: 0;
+  margin-bottom: 16px;
 }
 
 .pill-list {
@@ -512,7 +400,6 @@ section.profile-section h2::before {
   padding-top: 56.25%;
   background: #000;
   border: 1px solid var(--line);
-  overflow: hidden;
 }
 .video-item .frame iframe {
   position: absolute;
@@ -520,18 +407,6 @@ section.profile-section h2::before {
   width: 100%;
   height: 100%;
   border: 0;
-}
-/* Google Drive's own /preview page isn't actually responsive — inside a
-   narrow (mobile) iframe it switches to its own cramped layout, rendering
-   the video small in the middle of a lot of empty space ("zoomed out").
-   Fix: always render the Drive iframe at a fixed desktop-like size
-   (matching the same 16:9 as the frame) so Drive never sees a mobile
-   width, then visually scale the whole iframe down to fit the actual
-   container — see the fitDriveVideos() scaling in site.js. */
-.video-item .frame[data-provider="drive"] iframe {
-  width: 640px;
-  height: 360px;
-  transform-origin: top left;
 }
 .video-item h3 {
   font-size: 1.05rem;
@@ -556,20 +431,8 @@ section.profile-section h2::before {
   font-family: inherit;
   color: inherit;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
 }
-.cert-card:hover { border-color: var(--accent); background: var(--accent-tint); }
-.cert-card .cert-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  background: var(--accent-tint);
-  color: var(--accent-ink);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 10px;
-}
+.cert-card:hover { border-color: var(--accent); }
 .cert-card h3 {
   font-size: 0.98rem;
   margin: 0 0 4px;
@@ -754,4 +617,35 @@ section.profile-section h2::before {
   font-size: 0.85rem;
   color: var(--ink-soft);
   border-top: 1px solid var(--line);
+}
+
+/* ---------- Accessibility & polish ---------- */
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--accent);
+  color: #fff;
+  padding: 10px 16px;
+  z-index: 100;
+  border-radius: 0 0 4px 0;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .tutor-card {
+    animation: card-in 0.35s ease both;
+  }
+  .tutor-card:nth-child(1) { animation-delay: 0s; }
+  .tutor-card:nth-child(2) { animation-delay: 0.05s; }
+  .tutor-card:nth-child(3) { animation-delay: 0.1s; }
+  .tutor-card:nth-child(4) { animation-delay: 0.15s; }
+  .tutor-card:nth-child(5) { animation-delay: 0.2s; }
+  .tutor-card:nth-child(6) { animation-delay: 0.25s; }
+}
+@keyframes card-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
