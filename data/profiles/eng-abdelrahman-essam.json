@@ -14,7 +14,7 @@
       "embedUrl": "https://drive.google.com/thumbnail?id=1xi-_0sZMFtzTnEhj7Lj4LpW9v7pBALiJ&sz=w1000"
     },
     "summary": "Senior Software Engineer with experience in Functional Safety Embedded Software Engineering, hardware design, and embedded systems development. Proficient in Embedded C, C++, Python, and TCL, with expertise in microcontroller architectures, IoT platforms, hardware design, and software development for automotive, robotics, aerospace, railway, and agriculture applications.",
-    "theme": "sand",
+    "theme": "purple",
     "location": "Alexandria, Egypt",
     "field": "Engineering",
     "specialization": "Embedded Systems & Functional Safety Engineering"
@@ -87,7 +87,8 @@
       {
         "position": "Embedded Hardware Design Engineer — Contract",
         "organization": "FarmTopia",
-        "period": "Sep 2021 – Jan 2022"
+        "period": "Sep 2021 – Jan 2022",
+        "description": ""
       }
     ],
     "projects": [
@@ -132,7 +133,8 @@
     "additional": [
       "Functional Safety Engineering — ISO 26262",
       "Embedded Software Development",
-      "IoT, Robotics and Embedded Systems Training & Technical Support",
+      "IoT",
+      "Robotics and Embedded Systems Training & Technical Support",
       "Agile Methodologies",
       "CI/CD and DevOps for Embedded Software"
     ]
