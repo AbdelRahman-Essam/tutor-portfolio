@@ -50,10 +50,44 @@ function requireAuth(req, res, next) {
 }
 
 // ---------------------------------------------------------------------------
+// Login is the one route anyone on the internet can hit with arbitrary
+// guesses, so it gets its own, simple brute-force guard: after too many
+// wrong passwords from the same address inside one window, further
+// attempts are rejected without even checking the password (avoiding
+// bcrypt's deliberately-slow hashing on every guess, which is itself a
+// minor resource-exhaustion vector). Deliberately in-memory, no extra
+// dependency — resets on a server restart, which is fine for this scale.
+const LOGIN_WINDOW_MS = 10 * 60 * 1000;
+const LOGIN_MAX_ATTEMPTS = 8;
+const loginAttempts = new Map(); // ip -> { count, windowStart }
+
+function clientIp(req) {
+  // nginx sets X-Real-IP (see deploy/nginx-tutor-portfolio.conf); fall back
+  // to the raw socket address for direct/local access.
+  return req.headers['x-real-ip'] || req.socket.remoteAddress || 'unknown';
+}
+
+function loginRateLimit(req, res, next) {
+  const ip = clientIp(req);
+  const now = Date.now();
+  const entry = loginAttempts.get(ip);
+  if (!entry || now - entry.windowStart > LOGIN_WINDOW_MS) {
+    loginAttempts.set(ip, { count: 1, windowStart: now });
+    return next();
+  }
+  entry.count++;
+  if (entry.count > LOGIN_MAX_ATTEMPTS) {
+    const retryInMin = Math.ceil((LOGIN_WINDOW_MS - (now - entry.windowStart)) / 60000);
+    return res.status(429).json({ error: `Too many login attempts. Try again in about ${retryInMin} minute(s).` });
+  }
+  next();
+}
+
+// ---------------------------------------------------------------------------
 // Auth
 // ---------------------------------------------------------------------------
 
-app.post('/api/login', sameOriginGuard, (req, res) => {
+app.post('/api/login', sameOriginGuard, loginRateLimit, (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required.' });
@@ -63,6 +97,7 @@ app.post('/api/login', sameOriginGuard, (req, res) => {
     // Same message either way — don't reveal whether the username exists.
     return res.status(401).json({ error: 'Incorrect username or password.' });
   }
+  loginAttempts.delete(clientIp(req)); // a successful login clears this IP's counter
   const token = signSession(user);
   res.cookie(COOKIE_NAME, token, COOKIE_OPTIONS);
   res.json({ ok: true, profileKey: user.profileKey, username: user.username });
@@ -75,6 +110,15 @@ app.post('/api/logout', sameOriginGuard, (req, res) => {
 
 app.get('/api/me', requireAuth, (req, res) => {
   res.json({ username: req.session.username, profileKey: req.session.profileKey });
+});
+
+// Unauthenticated on purpose (for uptime checks/load balancers) — reveals
+// nothing sensitive, just confirms this specific process is alive and
+// which repo path it's running from. That last bit is handy for exactly
+// the kind of "is this actually the process I think it is?" confusion
+// that comes up when debugging a stale deploy.
+app.get('/api/health', (req, res) => {
+  res.json({ ok: true, time: new Date().toISOString(), root: ROOT });
 });
 
 // ---------------------------------------------------------------------------

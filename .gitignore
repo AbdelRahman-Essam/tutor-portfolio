@@ -1,0 +1,16 @@
+# Backend secrets/deps — never commit (server/.gitignore also covers these,
+# this is belt-and-suspenders for anything run/installed from the repo root)
+node_modules/
+server/.env
+server/users.json
+
+# Standalone preview files from scripts/make-preview.js — regenerable dev
+# artifacts (inline a specific build's CSS/JS into a single file for quick
+# viewing without a server), not something to keep in version control since
+# they go stale the moment the real site rebuilds.
+preview-*.html
+directory-preview-standalone.html
+profile-preview-standalone.html
+
+.DS_Store
+*.log
