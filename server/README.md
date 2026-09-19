@@ -9,16 +9,31 @@ the pipeline and exactly what it does and doesn't let someone change.
 ```bash
 cd server
 npm install
-
-# Generate a session secret and remember it — anyone with this value could
-# forge a login session, so treat it like a password.
-node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
-export AUTH_JWT_SECRET="<paste the value above>"
 ```
 
-(Or copy `.env.example` to `.env`, fill it in, and load it however you
-normally load env files for this project — the app just reads
-`process.env`, it doesn't load dotenv itself.)
+For production (running via the systemd unit in `deploy/profile-backend.service`),
+the secret lives in `/etc/profile-backend.env` — deliberately **outside**
+the git repo, so a `git pull`/checkout/clean can never wipe it (this bit us
+more than once when it lived at `server/.env`):
+
+```bash
+SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")
+sudo tee /etc/profile-backend.env > /dev/null <<ENV
+AUTH_JWT_SECRET=$SECRET
+PORT=3000
+NODE_ENV=production
+MYMEMORY_EMAIL=
+ENV
+sudo chmod 600 /etc/profile-backend.env
+sudo chown root:root /etc/profile-backend.env
+```
+
+`server/.env.example` is still there as a reference for what keys exist and
+what they do — just don't rely on `server/.env` itself surviving a redeploy.
+For quick local testing outside systemd, `server/.env` (loaded manually,
+e.g. `set -a; source .env; set +a; node index.js`) is fine — just know it's
+git-ignored and won't persist across a fresh checkout, which is exactly why
+production doesn't use it.
 
 ## Create a login for a profile
 

@@ -18,12 +18,12 @@ node scripts/translate.js
 node scripts/build-site.js
 
 echo
-echo "==> Checking backend setup (server/.env and server/node_modules are"
-echo "    git-ignored on purpose, so a fresh clone/checkout won't have them —"
-echo "    this has bitten us before, so we check every time instead of assuming)."
-if [[ ! -f server/.env ]]; then
-  echo "    !! server/.env is missing. Create it from server/.env.example"
-  echo "       and set AUTH_JWT_SECRET before the backend will start."
+echo "==> Checking backend setup (the real secret now lives outside the repo,"
+echo "    at /etc/profile-backend.env, precisely so git operations here can't"
+echo "    wipe it — see deploy/profile-backend.service for how to create it)."
+if [[ ! -f /etc/profile-backend.env ]]; then
+  echo "    !! /etc/profile-backend.env is missing. See the comment at the top"
+  echo "       of deploy/profile-backend.service for the one-liner to create it."
   echo "       Skipping backend restart."
   exit 1
 fi

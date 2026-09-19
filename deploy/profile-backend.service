@@ -18,7 +18,16 @@ After=network.target
 Type=simple
 User=trustech
 WorkingDirectory=/home/trustech/projects/tutor-portfolio/server
-EnvironmentFile=/home/trustech/projects/tutor-portfolio/server/.env
+# Deliberately OUTSIDE the repo (/etc, root-only readable) — server/.env
+# is git-ignored, and git operations on the repo directory (a fresh
+# checkout, git clean, etc) can wipe git-ignored files right along with
+# tracked ones. Keeping the real secret in /etc means git never touches
+# it, no matter what happens to the repo checkout.
+#   sudo tee /etc/profile-backend.env <<< "AUTH_JWT_SECRET=$(node -e "console.log(require('crypto').randomBytes(48).toString('hex'))")
+#   PORT=3000
+#   NODE_ENV=production"
+#   sudo chmod 600 /etc/profile-backend.env && sudo chown root:root /etc/profile-backend.env
+EnvironmentFile=/etc/profile-backend.env
 ExecStart=/usr/bin/node index.js
 Restart=on-failure
 RestartSec=3
